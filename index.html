@@ -278,24 +278,143 @@
                   </div>
                 </div>
 
-                <!-- Sprache -->
+                <!-- Sprache / Transkription in Reitern -->
                 <div class="editor-row speech-row">
                   <div class="speech-controls">
                     <button id="speech-toggle-btn" type="button" class="btn btn-secondary">
                       🎙️ Aufnahme starten
                     </button>
                     <span id="speech-hint" class="speech-hint">
-                      Optional: kurz Anamnese sprechen (Chrome empfohlen).
+                      Optional: kurz Anamnese & Verlauf sprechen (Chrome empfohlen).
                     </span>
                   </div>
+
+                  <!-- Reiter für einzelne Transkript-Bereiche -->
+                  <div class="speech-tabs">
+                    <button type="button" class="speech-tab active" data-target="speech-tab-anamnese">
+                      Anamnese
+                    </button>
+                    <button type="button" class="speech-tab" data-target="speech-tab-befund">
+                      Aktueller Befund / Status
+                    </button>
+                    <button type="button" class="speech-tab" data-target="speech-tab-diagnose">
+                      Diagnose (physiotherapeutisch / ärztlich)
+                    </button>
+                    <button type="button" class="speech-tab" data-target="speech-tab-therapieplan">
+                      Therapievorschlag / Therapieplan
+                    </button>
+                    <button type="button" class="speech-tab" data-target="speech-tab-verlauf">
+                      Verlauf &amp; Dokumentation
+                    </button>
+                    <button type="button" class="speech-tab" data-target="speech-tab-epikrise">
+                      Epikrise / Bewertung / Empfehlung
+                    </button>
+                  </div>
+
+                  <div class="speech-tab-panels">
+                    <!-- Anamnese -->
+                    <div class="form-field speech-tab-panel active" id="speech-tab-anamnese">
+                      <label for="speech-anamnese">
+                        Anamnese
+                        <span class="field-hint">
+                          Vorgeschichte, frühere Erkrankungen, bisherige Behandlungen, Fachärzte.
+                        </span>
+                      </label>
+                      <textarea
+                        id="speech-anamnese"
+                        rows="3"
+                        placeholder="Anamnese-Notizen oder Transkript"
+                      ></textarea>
+                    </div>
+
+                    <!-- Aktueller Befund / Status -->
+                    <div class="form-field speech-tab-panel" id="speech-tab-befund">
+                      <label for="speech-befund">
+                        Aktueller Befund / Status
+                        <span class="field-hint">
+                          Aktuelle Beschwerden, Befunde, Beweglichkeit, Schmerzbild, Funktion.
+                        </span>
+                      </label>
+                      <textarea
+                        id="speech-befund"
+                        rows="3"
+                        placeholder="Befund-Notizen oder Transkript"
+                      ></textarea>
+                    </div>
+
+                    <!-- Diagnose -->
+                    <div class="form-field speech-tab-panel" id="speech-tab-diagnose">
+                      <label for="speech-diagnose">
+                        Diagnose (physiotherapeutisch / ärztlich)
+                        <span class="field-hint">
+                          Eigene Einschätzung in Anlehnung an ärztliche Diagnose / ICD-10.
+                        </span>
+                      </label>
+                      <textarea
+                        id="speech-diagnose"
+                        rows="3"
+                        placeholder="Physiotherapeutische Diagnose / Einschätzung"
+                      ></textarea>
+                    </div>
+
+                    <!-- Therapievorschlag / Therapieplan -->
+                    <div class="form-field speech-tab-panel" id="speech-tab-therapieplan">
+                      <label for="speech-therapieplan">
+                        Therapievorschlag / Therapieplan
+                        <span class="field-hint">
+                          Geplante Maßnahmen (KG, MT, Übungen ...), Häufigkeit, Ziele.
+                        </span>
+                      </label>
+                      <textarea
+                        id="speech-therapieplan"
+                        rows="3"
+                        placeholder="Therapieplan / geplante Maßnahmen"
+                      ></textarea>
+                    </div>
+
+                    <!-- Verlauf & Dokumentation -->
+                    <div class="form-field speech-tab-panel" id="speech-tab-verlauf">
+                      <label for="speech-verlauf">
+                        Verlauf &amp; Dokumentation der durchgeführten Sitzungen / Therapien
+                        <span class="field-hint">
+                          Veränderungen, Zwischenbefunde, Reaktion auf Therapie.
+                        </span>
+                      </label>
+                      <textarea
+                        id="speech-verlauf"
+                        rows="3"
+                        placeholder="Verlaufsdokumentation / Zwischenergebnisse"
+                      ></textarea>
+                    </div>
+
+                    <!-- Epikrise / Bewertung / Empfehlung -->
+                    <div class="form-field speech-tab-panel" id="speech-tab-epikrise">
+                      <label for="speech-epikrise">
+                        Epikrise / Bewertung / Empfehlung
+                        <span class="field-hint">
+                          Abschließende Beurteilung, Verlauf, Empfehlung für weitere Maßnahmen.
+                        </span>
+                      </label>
+                      <textarea
+                        id="speech-epikrise"
+                        rows="3"
+                        placeholder="Epikrise, Bewertung, Empfehlungen"
+                      ></textarea>
+                    </div>
+                  </div>
+
+                  <!-- Zusätzlich: Gesamt-Rohtranskript für aktuelle Logik in app.js -->
                   <div class="form-field">
                     <label for="speech-notes">
-                      Stichworte / Roh-Transkript <span class="field-hint">(optional)</span>
+                      Gesamt-Transkript / Stichworte
+                      <span class="field-hint">
+                        Optional: gesamter Text für die aktuelle Doku-Generierung (Bestandssystem).
+                      </span>
                     </label>
                     <textarea
                       id="speech-notes"
-                      rows="3"
-                      placeholder="Kurze Notizen, die in die Doku einfließen können."
+                      rows="2"
+                      placeholder="Gesamtes Roh-Transkript, falls benötigt."
                     ></textarea>
                   </div>
                 </div>
