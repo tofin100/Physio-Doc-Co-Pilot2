@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Physio Doc Co-Pilot – Pilot</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta
+    name="description"
+    content="Pilot einer browserbasierten Physio-Dokumentationshilfe: strukturierte Doku in unter 60 Sekunden, alle Daten bleiben lokal im Browser."
+  />
+  <meta name="theme-color" content="#0b1020" />
+
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-root">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="app-header-left">
+        <h1 class="app-title">
+          Physio Doc Co-Pilot
+          <span class="app-badge">Pilot</span>
+        </h1>
+        <p class="app-subtitle">
+          ICD-10 eingeben, kurz klicken, Doku generieren – alle Daten bleiben lokal im Browser.
+        </p>
+      </div>
+      <div class="app-header-right">
+        <span id="speech-status-indicator" class="status-indicator" aria-live="polite">
+          Mikrofon nicht aktiv
+        </span>
+      </div>
+    </header>
+
+    <!-- Main -->
+    <main class="app-main" aria-label="Physio Doc Co-Pilot Oberfläche">
+      <!-- Sidebar -->
+      <aside class="sidebar" aria-label="Patientenverwaltung">
+        <section class="panel panel-patients">
+          <header class="panel-header">
+            <h2 class="panel-title">Patienten</h2>
+          </header>
+
+          <!-- Liste -->
+          <ul id="patient-list" class="list patient-list" aria-label="Patientenliste">
+            <!-- per JS -->
+          </ul>
+
+          <div class="panel-divider" role="separator" aria-hidden="true"></div>
+
+          <!-- Neuer Patient -->
+          <section class="new-patient-section" aria-label="Neuen Patienten anlegen">
+            <h3 class="panel-subtitle">Neuer Patient</h3>
+
+            <form id="new-patient-form" class="form form-vertical" autocomplete="off">
+              <div class="form-field">
+                <label for="patient-name-input">
+                  Name <span class="field-hint">(Pflichtfeld)</span>
+                </label>
+                <input
+                  type="text"
+                  id="patient-name-input"
+                  required
+                  placeholder="z. B. Max Mustermann"
+                />
+              </div>
+
+              <div class="form-field">
+                <label for="patient-year-input">
+                  Geburtsjahr <span class="field-hint">(optional)</span>
+                </label>
+                <input
+                  type="number"
+                  id="patient-year-input"
+                  min="1900"
+                  max="2100"
+                  inputmode="numeric"
+                  placeholder="1985"
+                />
+              </div>
+
+              <!-- ICD-10 Hauptdiagnose -->
+              <div class="form-field">
+                <label for="patient-icd-input">
+                  ICD-10 Hauptdiagnose
+                  <span class="field-hint">(Pflichtfeld, z. B. M54.5)</span>
+                </label>
+                <input
+                  type="text"
+                  id="patient-icd-input"
+                  placeholder="z. B. M54.5 Kreuzschmerz"
+                  autocomplete="off"
+                  required
+                />
+                <div
+                  id="patient-icd-suggestions"
+                  class="icd-suggestions"
+                  aria-label="ICD-10 Vorschläge"
+                ></div>
+                <p class="icd-helper-text">
+                  Tipp: Code oder Text eingeben (z.&nbsp;B. „M54“ oder „Schulter“) und Vorschlag auswählen.
+                </p>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-full">
+                Schnell anlegen & Erstbefund starten
+              </button>
+            </form>
+          </section>
+        </section>
+      </aside>
+
+      <!-- Hauptbereich -->
+      <section class="main-content">
+        <!-- Kein Patient ausgewählt -->
+        <section id="no-patient-selected" class="empty-state" aria-live="polite">
+          <h2 class="empty-title">Willkommen 👋</h2>
+          <p class="empty-text">
+            Lege links einen Patienten mit ICD-10-Hauptdiagnose an – wir starten automatisch mit einem Erstbefund mit heutigem Datum.
+          </p>
+          <p class="empty-text secondary">
+            Dies ist eine Pilotversion: alle Daten werden ausschließlich lokal in deinem Browser gespeichert.
+          </p>
+        </section>
+
+        <!-- Patient ausgewählt -->
+        <section
+          id="patient-detail"
+          class="patient-detail hidden"
+          aria-live="polite"
+          aria-label="Details zum ausgewählten Patienten"
+        >
+          <!-- Kopf -->
+          <header class="panel patient-header">
+            <div class="patient-header-info">
+              <h2 id="patient-title" class="patient-name"></h2>
+              <p id="patient-meta" class="patient-meta"></p>
+            </div>
+            <div class="patient-header-actions">
+              <button id="add-session-btn" class="btn btn-secondary" type="button">
+                + Folgetermin
+              </button>
+            </div>
+          </header>
+
+          <!-- Layout -->
+          <div class="patient-layout">
+            <!-- Verlauf -->
+            <section class="panel sessions-panel" aria-label="Sitzungen & Verlauf">
+              <header class="panel-header">
+                <h3 class="panel-title">Sitzungen & Verlauf</h3>
+              </header>
+
+              <ul id="session-list" class="list session-list" aria-label="Liste der Sitzungen">
+                <!-- per JS -->
+              </ul>
+
+              <div class="score-chart-wrapper">
+                <canvas
+                  id="score-chart"
+                  class="score-chart"
+                  width="400"
+                  height="200"
+                  aria-label="Verlauf des Beschwerde-Scores"
+                  role="img"
+                >
+                  Dein Browser unterstützt kein Canvas – Score-Verlauf nicht verfügbar.
+                </canvas>
+              </div>
+            </section>
+
+            <!-- Editor -->
+            <section class="panel editor-panel" aria-label="Sitzung dokumentieren">
+              <!-- Kein Termin -->
+              <div id="no-session-selected" class="empty-state small">
+                <p class="empty-text">
+                  Noch keine Sitzung ausgewählt. Lege links einen Patienten an – wir starten automatisch mit einer Erstbefund-Sitzung.
+                </p>
+              </div>
+
+              <!-- Editor -->
+              <div id="session-editor" class="session-editor hidden">
+                <!-- Steps -->
+                <div class="editor-steps">
+                  <span class="step-badge">1</span> Beschwerden wählen
+                  <span class="step-separator">→</span>
+                  <span class="step-badge">2</span> Maßnahmen anklicken
+                  <span class="step-separator">→</span>
+                  <span class="step-badge">3</span> Doku generieren & kopieren
+                </div>
+
+                <!-- Basisinfos -->
+                <div class="editor-row editor-row-inline">
+                  <div class="form-field">
+                    <label for="session-type">Sitzungstyp</label>
+                    <select id="session-type">
+                      <option value="initial">Erstbefund</option>
+                      <option value="followup">Folgetermin</option>
+                    </select>
+                  </div>
+
+                  <div class="form-field">
+                    <label for="session-date">Datum</label>
+                    <input type="date" id="session-date" />
+                  </div>
+
+                  <div class="form-field">
+                    <label for="session-region">Region</label>
+                    <select id="session-region">
+                      <option value="">–</option>
+                      <option value="HWS">HWS / Nacken</option>
+                      <option value="LWS">LWS / Lendenwirbelsäule</option>
+                      <option value="Schulter">Schulter</option>
+                      <option value="Knie">Knie</option>
+                      <option value="Hüfte">Hüfte</option>
+                      <option value="Sonstiges">Sonstiges</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Beschwerden -->
+                <div class="editor-row">
+                  <div class="chip-group">
+                    <div class="chip-group-header">
+                      <span class="chip-group-title">Beschwerden</span>
+                      <span class="chip-group-hint">Mehrfachauswahl möglich</span>
+                    </div>
+                    <div id="complaint-chips" class="chips"></div>
+                  </div>
+                </div>
+
+                <!-- Maßnahmen -->
+                <div class="editor-row">
+                  <div class="chip-group">
+                    <div class="chip-group-header">
+                      <span class="chip-group-title">Maßnahmen</span>
+                      <span class="chip-group-hint">heutige Behandlung</span>
+                    </div>
+                    <div id="measure-chips" class="chips"></div>
+                  </div>
+                </div>
+
+                <!-- Skalen -->
+                <div class="editor-row sliders-row">
+                  <div class="slider-block">
+                    <label for="pain-slider">
+                      Schmerz (0 = kein, 10 = maximal)
+                    </label>
+                    <div class="slider-value-row">
+                      <input
+                        type="range"
+                        id="pain-slider"
+                        min="0"
+                        max="10"
+                        step="1"
+                        value="5"
+                      />
+                      <span id="pain-value" class="slider-value" aria-live="polite">5</span>
+                    </div>
+                  </div>
+
+                  <div class="slider-block">
+                    <label for="function-slider">
+                      Alltags­einschränkung (0 = keine, 10 = maximal)
+                    </label>
+                    <div class="slider-value-row">
+                      <input
+                        type="range"
+                        id="function-slider"
+                        min="0"
+                        max="10"
+                        step="1"
+                        value="5"
+                      />
+                      <span id="function-value" class="slider-value" aria-live="polite">5</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Sprache -->
+                <div class="editor-row speech-row">
+                  <div class="speech-controls">
+                    <button id="speech-toggle-btn" type="button" class="btn btn-secondary">
+                      🎙️ Aufnahme starten
+                    </button>
+                    <span id="speech-hint" class="speech-hint">
+                      Optional: kurz Anamnese sprechen (Chrome empfohlen).
+                    </span>
+                  </div>
+                  <div class="form-field">
+                    <label for="speech-notes">
+                      Stichworte / Roh-Transkript <span class="field-hint">(optional)</span>
+                    </label>
+                    <textarea
+                      id="speech-notes"
+                      rows="3"
+                      placeholder="Kurze Notizen, die in die Doku einfließen können."
+                    ></textarea>
+                  </div>
+                </div>
+
+                <!-- Generierte Doku -->
+                <div class="editor-row">
+                  <div class="form-field">
+                    <label for="session-note">
+                      Generierte Doku <span class="field-hint">(editierbar)</span>
+                    </label>
+                    <textarea
+                      id="session-note"
+                      rows="9"
+                      class="note-textarea"
+                      placeholder="Klicke auf „Doku generieren“ – die Notiz kannst du anschließend anpassen."
+                    ></textarea>
+                  </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="editor-footer">
+                  <div class="score-block" aria-label="Beschwerde-Score">
+                    <div class="score-label">Beschwerde-Score</div>
+                    <div id="score-value" class="score-value">–</div>
+                    <div id="score-category" class="score-category">
+                      Noch nicht berechnet
+                    </div>
+                  </div>
+                  <div class="editor-actions">
+                    <button id="generate-note-btn" class="btn btn-secondary" type="button">
+                      Doku generieren
+                    </button>
+                    <button id="copy-note-btn" class="btn btn-secondary" type="button">
+                      In Zwischenablage kopieren
+                    </button>
+                    <button id="save-session-btn" class="btn btn-primary" type="button">
+                      Sitzung speichern
+                    </button>
+                    <button id="delete-session-btn" class="btn btn-danger" type="button">
+                      Sitzung löschen
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p class="footer-text">
+        Physio Doc Co-Pilot · Pilotversion · alle Daten bleiben lokal im Browser.
+      </p>
+    </footer>
+  </div>
+
+  <script src="./app.js" defer></script>
+</body>
+</html>
