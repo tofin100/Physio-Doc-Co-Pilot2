@@ -210,7 +210,7 @@
                     <select id="session-region">
                       <option value="">–</option>
                       <option value="HWS">HWS / Nacken</option>
-                      <option value="LWS">LWS / Lendenwirbelsäule</option>
+                      <option value="LWS">Lendenwirbelsäule</option>
                       <option value="Schulter">Schulter</option>
                       <option value="Knie">Knie</option>
                       <option value="Hüfte">Hüfte</option>
@@ -281,11 +281,12 @@
                 <!-- Sprache / Transkription in Reitern -->
                 <div class="editor-row speech-row">
                   <div class="speech-controls">
+                    <!-- Globaler Button: startet/stoppt Aufnahme für das aktuell aktive Feld -->
                     <button id="speech-toggle-btn" type="button" class="btn btn-secondary">
-                      🎙️ Aufnahme starten
+                      🎙️ Aufnahme starten (aktiver Bereich)
                     </button>
                     <span id="speech-hint" class="speech-hint">
-                      Optional: kurz Anamnese & Verlauf sprechen (Chrome empfohlen).
+                      Klicke in einem Reiter auf „Aufnahme für diesen Bereich“, dann hier auf Start.
                     </span>
                   </div>
 
@@ -314,12 +315,21 @@
                   <div class="speech-tab-panels">
                     <!-- Anamnese -->
                     <div class="form-field speech-tab-panel active" id="speech-tab-anamnese">
-                      <label for="speech-anamnese">
-                        Anamnese
-                        <span class="field-hint">
-                          Vorgeschichte, frühere Erkrankungen, bisherige Behandlungen, Fachärzte.
+                      <div class="speech-panel-header">
+                        <span>
+                          Anamnese
+                          <span class="field-hint">
+                            Vorgeschichte, frühere Erkrankungen, bisherige Behandlungen, Fachärzte.
+                          </span>
                         </span>
-                      </label>
+                        <button
+                          type="button"
+                          class="btn btn-secondary speech-record-btn"
+                          data-target-textarea="speech-anamnese"
+                        >
+                          🎙️ Aufnahme für diesen Bereich
+                        </button>
+                      </div>
                       <textarea
                         id="speech-anamnese"
                         rows="3"
@@ -329,12 +339,21 @@
 
                     <!-- Aktueller Befund / Status -->
                     <div class="form-field speech-tab-panel" id="speech-tab-befund">
-                      <label for="speech-befund">
-                        Aktueller Befund / Status
-                        <span class="field-hint">
-                          Aktuelle Beschwerden, Befunde, Beweglichkeit, Schmerzbild, Funktion.
+                      <div class="speech-panel-header">
+                        <span>
+                          Aktueller Befund / Status
+                          <span class="field-hint">
+                            Aktuelle Beschwerden, Befunde, Beweglichkeit, Schmerzbild, Funktion.
+                          </span>
                         </span>
-                      </label>
+                        <button
+                          type="button"
+                          class="btn btn-secondary speech-record-btn"
+                          data-target-textarea="speech-befund"
+                        >
+                          🎙️ Aufnahme für diesen Bereich
+                        </button>
+                      </div>
                       <textarea
                         id="speech-befund"
                         rows="3"
@@ -344,12 +363,21 @@
 
                     <!-- Diagnose -->
                     <div class="form-field speech-tab-panel" id="speech-tab-diagnose">
-                      <label for="speech-diagnose">
-                        Diagnose (physiotherapeutisch / ärztlich)
-                        <span class="field-hint">
-                          Eigene Einschätzung in Anlehnung an ärztliche Diagnose / ICD-10.
+                      <div class="speech-panel-header">
+                        <span>
+                          Diagnose (physiotherapeutisch / ärztlich)
+                          <span class="field-hint">
+                            Eigene Einschätzung in Anlehnung an ärztliche Diagnose / ICD-10.
+                          </span>
                         </span>
-                      </label>
+                        <button
+                          type="button"
+                          class="btn btn-secondary speech-record-btn"
+                          data-target-textarea="speech-diagnose"
+                        >
+                          🎙️ Aufnahme für diesen Bereich
+                        </button>
+                      </div>
                       <textarea
                         id="speech-diagnose"
                         rows="3"
@@ -359,12 +387,21 @@
 
                     <!-- Therapievorschlag / Therapieplan -->
                     <div class="form-field speech-tab-panel" id="speech-tab-therapieplan">
-                      <label for="speech-therapieplan">
-                        Therapievorschlag / Therapieplan
-                        <span class="field-hint">
-                          Geplante Maßnahmen (KG, MT, Übungen ...), Häufigkeit, Ziele.
+                      <div class="speech-panel-header">
+                        <span>
+                          Therapievorschlag / Therapieplan
+                          <span class="field-hint">
+                            Geplante Maßnahmen (KG, MT, Übungen ...), Häufigkeit, Ziele.
+                          </span>
                         </span>
-                      </label>
+                        <button
+                          type="button"
+                          class="btn btn-secondary speech-record-btn"
+                          data-target-textarea="speech-therapieplan"
+                        >
+                          🎙️ Aufnahme für diesen Bereich
+                        </button>
+                      </div>
                       <textarea
                         id="speech-therapieplan"
                         rows="3"
@@ -374,12 +411,21 @@
 
                     <!-- Verlauf & Dokumentation -->
                     <div class="form-field speech-tab-panel" id="speech-tab-verlauf">
-                      <label for="speech-verlauf">
-                        Verlauf &amp; Dokumentation der durchgeführten Sitzungen / Therapien
-                        <span class="field-hint">
-                          Veränderungen, Zwischenbefunde, Reaktion auf Therapie.
+                      <div class="speech-panel-header">
+                        <span>
+                          Verlauf &amp; Dokumentation der durchgeführten Sitzungen / Therapien
+                          <span class="field-hint">
+                            Veränderungen, Zwischenbefunde, Reaktion auf Therapie.
+                          </span>
                         </span>
-                      </label>
+                        <button
+                          type="button"
+                          class="btn btn-secondary speech-record-btn"
+                          data-target-textarea="speech-verlauf"
+                        >
+                          🎙️ Aufnahme für diesen Bereich
+                        </button>
+                      </div>
                       <textarea
                         id="speech-verlauf"
                         rows="3"
@@ -389,12 +435,21 @@
 
                     <!-- Epikrise / Bewertung / Empfehlung -->
                     <div class="form-field speech-tab-panel" id="speech-tab-epikrise">
-                      <label for="speech-epikrise">
-                        Epikrise / Bewertung / Empfehlung
-                        <span class="field-hint">
-                          Abschließende Beurteilung, Verlauf, Empfehlung für weitere Maßnahmen.
+                      <div class="speech-panel-header">
+                        <span>
+                          Epikrise / Bewertung / Empfehlung
+                          <span class="field-hint">
+                            Abschließende Beurteilung, Verlauf, Empfehlung für weitere Maßnahmen.
+                          </span>
                         </span>
-                      </label>
+                        <button
+                          type="button"
+                          class="btn btn-secondary speech-record-btn"
+                          data-target-textarea="speech-epikrise"
+                        >
+                          🎙️ Aufnahme für diesen Bereich
+                        </button>
+                      </div>
                       <textarea
                         id="speech-epikrise"
                         rows="3"
@@ -403,7 +458,7 @@
                     </div>
                   </div>
 
-                  <!-- Zusätzlich: Gesamt-Rohtranskript für aktuelle Logik in app.js -->
+                  <!-- Zusätzlich: Gesamt-Rohtranskript für alte Logik in app.js -->
                   <div class="form-field">
                     <label for="speech-notes">
                       Gesamt-Transkript / Stichworte
