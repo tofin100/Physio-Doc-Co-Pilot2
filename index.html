@@ -98,6 +98,9 @@
                   class="icd-suggestions"
                   aria-label="ICD-10 Vorschläge"
                 ></div>
+                <p id="patient-icd-selected" class="icd-selected">
+                  Noch keine Diagnose ausgewählt.
+                </p>
                 <p class="icd-helper-text">
                   Tipp: Code oder Text eingeben (z.&nbsp;B. „M54“ oder „Schulter“) und Vorschlag auswählen.
                 </p>
@@ -187,7 +190,7 @@
                   <span class="step-separator">→</span>
                   <span class="step-badge">2</span> Maßnahmen anklicken
                   <span class="step-separator">→</span>
-                  <span class="step-badge">3</span> Doku generieren & kopieren
+                  <span class="step-badge">3</span> Doku generieren &amp; kopieren
                 </div>
 
                 <!-- Basisinfos -->
@@ -203,19 +206,6 @@
                   <div class="form-field">
                     <label for="session-date">Datum</label>
                     <input type="date" id="session-date" />
-                  </div>
-
-                  <div class="form-field">
-                    <label for="session-region">Region</label>
-                    <select id="session-region">
-                      <option value="">–</option>
-                      <option value="HWS">HWS / Nacken</option>
-                      <option value="LWS">Lendenwirbelsäule</option>
-                      <option value="Schulter">Schulter</option>
-                      <option value="Knie">Knie</option>
-                      <option value="Hüfte">Hüfte</option>
-                      <option value="Sonstiges">Sonstiges</option>
-                    </select>
                   </div>
                 </div>
 
@@ -286,11 +276,11 @@
                       🎙️ Aufnahme starten (aktiver Bereich)
                     </button>
                     <span id="speech-hint" class="speech-hint">
-                      Klicke in einem Reiter auf „Aufnahme für diesen Bereich“, dann hier auf Start.
+                      Bereich wählen („Aufnahme für diesen Bereich“) und dann hier Start/Stop drücken.
                     </span>
                   </div>
 
-                  <!-- Reiter für einzelne Transkript-Bereiche -->
+                  <!-- Reiter -->
                   <div class="speech-tabs">
                     <button type="button" class="speech-tab active" data-target="speech-tab-anamnese">
                       Anamnese
@@ -316,12 +306,12 @@
                     <!-- Anamnese -->
                     <div class="form-field speech-tab-panel active" id="speech-tab-anamnese">
                       <div class="speech-panel-header">
-                        <span>
-                          Anamnese
+                        <div>
+                          <div class="speech-panel-title">Anamnese</div>
                           <span class="field-hint">
-                            Vorgeschichte, frühere Erkrankungen, bisherige Behandlungen, Fachärzte.
+                            Vorgeschichte der Beschwerden, frühere Erkrankungen, bisherige Behandlungen, Fachärzte.
                           </span>
-                        </span>
+                        </div>
                         <button
                           type="button"
                           class="btn btn-secondary speech-record-btn"
@@ -340,12 +330,12 @@
                     <!-- Aktueller Befund / Status -->
                     <div class="form-field speech-tab-panel" id="speech-tab-befund">
                       <div class="speech-panel-header">
-                        <span>
-                          Aktueller Befund / Status
+                        <div>
+                          <div class="speech-panel-title">Aktueller Befund / Status</div>
                           <span class="field-hint">
-                            Aktuelle Beschwerden, Befunde, Beweglichkeit, Schmerzbild, Funktion.
+                            Beschreibung der aktuellen Beschwerden, körperlichen Befunde, Beweglichkeit, Schmerzbild, Funktionsstörungen.
                           </span>
-                        </span>
+                        </div>
                         <button
                           type="button"
                           class="btn btn-secondary speech-record-btn"
@@ -364,12 +354,14 @@
                     <!-- Diagnose -->
                     <div class="form-field speech-tab-panel" id="speech-tab-diagnose">
                       <div class="speech-panel-header">
-                        <span>
-                          Diagnose (physiotherapeutisch / ärztlich)
+                        <div>
+                          <div class="speech-panel-title">
+                            Diagnose (physiotherapeutisch / ärztlich)
+                          </div>
                           <span class="field-hint">
-                            Eigene Einschätzung in Anlehnung an ärztliche Diagnose / ICD-10.
+                            Physiotherapeutische Einschätzung in Anlehnung an die ärztliche ICD-10-Diagnose.
                           </span>
-                        </span>
+                        </div>
                         <button
                           type="button"
                           class="btn btn-secondary speech-record-btn"
@@ -381,19 +373,19 @@
                       <textarea
                         id="speech-diagnose"
                         rows="3"
-                        placeholder="Physiotherapeutische Diagnose / Einschätzung"
+                        placeholder="Diagnose / Einschätzung"
                       ></textarea>
                     </div>
 
                     <!-- Therapievorschlag / Therapieplan -->
                     <div class="form-field speech-tab-panel" id="speech-tab-therapieplan">
                       <div class="speech-panel-header">
-                        <span>
-                          Therapievorschlag / Therapieplan
+                        <div>
+                          <div class="speech-panel-title">Therapievorschlag / Therapieplan</div>
                           <span class="field-hint">
-                            Geplante Maßnahmen (KG, MT, Übungen ...), Häufigkeit, Ziele.
+                            Geplante therapeutische Maßnahmen (KG, MT, Übungen …), Häufigkeit, Ziele.
                           </span>
-                        </span>
+                        </div>
                         <button
                           type="button"
                           class="btn btn-secondary speech-record-btn"
@@ -412,12 +404,14 @@
                     <!-- Verlauf & Dokumentation -->
                     <div class="form-field speech-tab-panel" id="speech-tab-verlauf">
                       <div class="speech-panel-header">
-                        <span>
-                          Verlauf &amp; Dokumentation der durchgeführten Sitzungen / Therapien
+                        <div>
+                          <div class="speech-panel-title">
+                            Verlauf &amp; Dokumentation der durchgeführten Sitzungen / Therapien
+                          </div>
                           <span class="field-hint">
-                            Veränderungen, Zwischenbefunde, Reaktion auf Therapie.
+                            Was wurde gemacht, wie hat sich der Zustand verändert, Zwischenbefunde.
                           </span>
-                        </span>
+                        </div>
                         <button
                           type="button"
                           class="btn btn-secondary speech-record-btn"
@@ -429,19 +423,21 @@
                       <textarea
                         id="speech-verlauf"
                         rows="3"
-                        placeholder="Verlaufsdokumentation / Zwischenergebnisse"
+                        placeholder="Verlauf / Zwischenergebnisse"
                       ></textarea>
                     </div>
 
                     <!-- Epikrise / Bewertung / Empfehlung -->
                     <div class="form-field speech-tab-panel" id="speech-tab-epikrise">
                       <div class="speech-panel-header">
-                        <span>
-                          Epikrise / Bewertung / Empfehlung
+                        <div>
+                          <div class="speech-panel-title">
+                            Epikrise / Bewertung / Empfehlung
+                          </div>
                           <span class="field-hint">
-                            Abschließende Beurteilung, Verlauf, Empfehlung für weitere Maßnahmen.
+                            Abschließende Beurteilung des bisherigen Verlaufs, Empfehlungen für weitere Maßnahmen.
                           </span>
-                        </span>
+                        </div>
                         <button
                           type="button"
                           class="btn btn-secondary speech-record-btn"
@@ -453,17 +449,17 @@
                       <textarea
                         id="speech-epikrise"
                         rows="3"
-                        placeholder="Epikrise, Bewertung, Empfehlungen"
+                        placeholder="Epikrise / Bewertung / Empfehlung"
                       ></textarea>
                     </div>
                   </div>
 
-                  <!-- Zusätzlich: Gesamt-Rohtranskript für alte Logik in app.js -->
+                  <!-- Gesamt-Transkript (Kompatibilität zu alter Logik) -->
                   <div class="form-field">
                     <label for="speech-notes">
                       Gesamt-Transkript / Stichworte
                       <span class="field-hint">
-                        Optional: gesamter Text für die aktuelle Doku-Generierung (Bestandssystem).
+                        Optional: gesamter Text, falls du nur ein Feld nutzen möchtest.
                       </span>
                     </label>
                     <textarea
@@ -482,7 +478,7 @@
                     </label>
                     <textarea
                       id="session-note"
-                      rows="9"
+                      rows="10"
                       class="note-textarea"
                       placeholder="Klicke auf „Doku generieren“ – die Notiz kannst du anschließend anpassen."
                     ></textarea>
@@ -528,6 +524,8 @@
     </footer>
   </div>
 
+  <!-- ICD-10 Daten (eigene Datei) + App-Logik -->
+  <script src="./icd10-codes.js" defer></script>
   <script src="./app.js" defer></script>
 </body>
 </html>
