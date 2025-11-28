@@ -23,7 +23,7 @@
           <span class="app-badge">Pilot</span>
         </h1>
         <p class="app-subtitle">
-          Patient anlegen, ICD-10 wählen, strukturiert diktieren – alle Daten bleiben lokal im Browser.
+          Patient anlegen, ICD-10 wählen, strukturierte Bereiche diktieren – alle Daten bleiben lokal im Browser.
         </p>
       </div>
       <div class="app-header-right">
@@ -226,8 +226,7 @@
                   <span class="step-badge">1</span> Beschwerden &amp; Maßnahmen
                   wählen
                   <span class="step-separator">→</span>
-                  <span class="step-badge">2</span> Strukturierte Bereiche
-                  diktieren
+                  <span class="step-badge">2</span> Einzelne Bereiche diktieren
                   <span class="step-separator">→</span>
                   <span class="step-badge">3</span> Gesamtdoku generieren &amp;
                   kopieren
@@ -265,7 +264,7 @@
                   <div class="chip-group">
                     <div class="chip-group-header">
                       <span class="chip-group-title">Maßnahmen (heutige Behandlung)</span>
-                      <span class="chip-group-hint">für Score & Kurzplan</span>
+                      <span class="chip-group-hint">für Score &amp; Kurzplan</span>
                     </div>
                     <div id="measure-chips" class="chips"></div>
                   </div>
@@ -331,8 +330,8 @@
                       🎙️ Aufnahme starten (aktiver Bereich)
                     </button>
                     <span id="speech-hint" class="speech-hint">
-                      Wähle unten einen Bereich („Aufnahme für …“), dann hier
-                      starten/stoppen.
+                      Wähle unten „Aufnahme für …“ für den gewünschten Abschnitt
+                      und starte/stoppe hier.
                     </span>
                   </div>
                 </div>
@@ -367,14 +366,14 @@
                         class="speech-tab"
                         data-target="tab-therapieplan"
                       >
-                        Therapievorschlag / Therapieplan
+                        Therapieplan
                       </button>
                       <button
                         type="button"
                         class="speech-tab"
                         data-target="tab-verlauf"
                       >
-                        Verlauf &amp; Dokumentation
+                        Verlauf &amp; Doku
                       </button>
                       <button
                         type="button"
@@ -399,14 +398,16 @@
                           bisherige Behandlungen, bereits besuchte Fachärzte
                           etc.
                         </p>
-                        <button
-                          type="button"
-                          class="btn btn-secondary speech-record-btn"
-                          data-target-textarea="speech-anamnese"
-                        >
-                          🎙️ Aufnahme für Anamnese wählen
-                        </button>
-                        <div class="form-field" style="margin-top: 6px;">
+                        <p>
+                          <button
+                            type="button"
+                            class="btn btn-secondary speech-record-btn"
+                            data-target-textarea="speech-anamnese"
+                          >
+                            🎙️ Aufnahme für Anamnese wählen
+                          </button>
+                        </p>
+                        <div class="form-field">
                           <label for="speech-anamnese">
                             Anamnesenotizen
                             <span class="field-hint">(Transkript &amp; Ergänzungen)</span>
@@ -427,19 +428,21 @@
                       >
                         <h4>Aktueller Befund / Status</h4>
                         <p class="speech-description">
-                          Beschreibung der aktuellen Beschwerden,
-                          körperlichen Befunde, Einschätzung von Beweglichkeit,
+                          Beschreibung der aktuellen Beschwerden, körperlichen
+                          Befunde, Einschätzung von Beweglichkeit,
                           Schmerzbildern und Funktionsstörungen (ggf. inkl.
                           Bildgebung, ärztlichen Befunden).
                         </p>
-                        <button
-                          type="button"
-                          class="btn btn-secondary speech-record-btn"
-                          data-target-textarea="speech-befund"
-                        >
-                          🎙️ Aufnahme für Befund wählen
-                        </button>
-                        <div class="form-field" style="margin-top: 6px;">
+                        <p>
+                          <button
+                            type="button"
+                            class="btn btn-secondary speech-record-btn"
+                            data-target-textarea="speech-befund"
+                          >
+                            🎙️ Aufnahme für Befund wählen
+                          </button>
+                        </p>
+                        <div class="form-field">
                           <label for="speech-befund">
                             Befundnotizen
                             <span class="field-hint">(Transkript &amp; Ergänzungen)</span>
@@ -460,18 +463,20 @@
                       >
                         <h4>Diagnose (physiotherapeutisch / ärztlich)</h4>
                         <p class="speech-description">
-                          Ergänzung zur ärztlichen Diagnose aus physio­
-                          therapeutischer Sicht (Funktionsdiagnose, klinische
-                          Einschätzung, Prioritäten).
+                          Ergänzung zur ärztlichen Diagnose aus
+                          physiotherapeutischer Sicht (Funktionsdiagnose,
+                          klinische Einschätzung, Prioritäten).
                         </p>
-                        <button
-                          type="button"
-                          class="btn btn-secondary speech-record-btn"
-                          data-target-textarea="speech-diagnose"
-                        >
-                          🎙️ Aufnahme für Diagnose wählen
-                        </button>
-                        <div class="form-field" style="margin-top: 6px;">
+                        <p>
+                          <button
+                            type="button"
+                            class="btn btn-secondary speech-record-btn"
+                            data-target-textarea="speech-diagnose"
+                          >
+                            🎙️ Aufnahme für Diagnose wählen
+                          </button>
+                        </p>
+                        <div class="form-field">
                           <label for="speech-diagnose">
                             Diagnosenotizen
                             <span class="field-hint">(Transkript &amp; Ergänzungen)</span>
@@ -492,20 +497,21 @@
                       >
                         <h4>Therapievorschlag / Therapieplan</h4>
                         <p class="speech-description">
-                          Geplante therapeutische Maßnahmen (z. B.
-                          Krankengymnastik, manuelle Therapie,
-                          Bewegungsübungen), Frequenz, Dauer und übergeordnetes
-                          Ziel – nachvollziehbar für Weiterbehandler und
-                          Kostenträger.
+                          Welche therapeutischen Maßnahmen sind vorgesehen
+                          (z. B. Krankengymnastik, manuelle Therapie,
+                          Bewegungsübungen), wie häufig, mit welchem Ziel – zur
+                          strukturierten und nachvollziehbaren Planung.
                         </p>
-                        <button
-                          type="button"
-                          class="btn btn-secondary speech-record-btn"
-                          data-target-textarea="speech-therapieplan"
-                        >
-                          🎙️ Aufnahme für Therapieplan wählen
-                        </button>
-                        <div class="form-field" style="margin-top: 6px;">
+                        <p>
+                          <button
+                            type="button"
+                            class="btn btn-secondary speech-record-btn"
+                            data-target-textarea="speech-therapieplan"
+                          >
+                            🎙️ Aufnahme für Therapieplan wählen
+                          </button>
+                        </p>
+                        <div class="form-field">
                           <label for="speech-therapieplan">
                             Therapieplannotizen
                             <span class="field-hint">(Transkript &amp; Ergänzungen)</span>
@@ -533,14 +539,16 @@
                           relevante Zwischenbefunde – wichtig für Fortführung
                           oder Verlängerung der Verordnung.
                         </p>
-                        <button
-                          type="button"
-                          class="btn btn-secondary speech-record-btn"
-                          data-target-textarea="speech-verlauf"
-                        >
-                          🎙️ Aufnahme für Verlauf wählen
-                        </button>
-                        <div class="form-field" style="margin-top: 6px;">
+                        <p>
+                          <button
+                            type="button"
+                            class="btn btn-secondary speech-record-btn"
+                            data-target-textarea="speech-verlauf"
+                          >
+                            🎙️ Aufnahme für Verlauf wählen
+                          </button>
+                        </p>
+                        <div class="form-field">
                           <label for="speech-verlauf">
                             Verlaufsnotizen
                             <span class="field-hint">(Transkript &amp; Ergänzungen)</span>
@@ -565,14 +573,16 @@
                           Empfehlung für weitere therapeutische Maßnahmen oder
                           ärztliche Rücksprache.
                         </p>
-                        <button
-                          type="button"
-                          class="btn btn-secondary speech-record-btn"
-                          data-target-textarea="speech-epikrise"
-                        >
-                          🎙️ Aufnahme für Epikrise wählen
-                        </button>
-                        <div class="form-field" style="margin-top: 6px;">
+                        <p>
+                          <button
+                            type="button"
+                            class="btn btn-secondary speech-record-btn"
+                            data-target-textarea="speech-epikrise"
+                          >
+                            🎙️ Aufnahme für Epikrise wählen
+                          </button>
+                        </p>
+                        <div class="form-field">
                           <label for="speech-epikrise">
                             Epikrisenotizen
                             <span class="field-hint">(Transkript &amp; Ergänzungen)</span>
@@ -588,20 +598,35 @@
                   </div>
                 </div>
 
-                <!-- Gesamt-Transkript (frei) -->
+                <!-- Gesamt-Transkript (freier Abschnitt mit eigenem Button) -->
                 <div class="editor-row">
+                  <h4>Gesamt-Notizen / Roh-Transkript</h4>
+                  <p class="speech-description">
+                    Optionaler freier Bereich für Notizen, die nicht in die
+                    einzelnen Abschnitte passen (z. B. Gesprächsdetails,
+                    organisatorische Infos).
+                  </p>
+                  <p>
+                    <button
+                      type="button"
+                      class="btn btn-secondary speech-record-btn"
+                      data-target-textarea="speech-notes"
+                    >
+                      🎙️ Aufnahme für Gesamt-Notizen wählen
+                    </button>
+                  </p>
                   <div class="form-field">
                     <label for="speech-notes">
-                      Gesamt-Notizen / Roh-Transkript
+                      Gesamt-Notizen
                       <span class="field-hint">
-                        optional – freies Diktat außerhalb der einzelnen
-                        Bereiche
+                        freies Transkript, wird bei Bedarf in die Gesamtdoku
+                        übernommen
                       </span>
                     </label>
                     <textarea
                       id="speech-notes"
                       rows="3"
-                      placeholder="Optionales Gesamt-Transkript, falls du ohne Struktur diktieren möchtest."
+                      placeholder="Hier wird das freie Gesamt-Transkript erfasst."
                     ></textarea>
                   </div>
                 </div>
