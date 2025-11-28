@@ -34,7 +34,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Layout */
+/* Layout: App begrenzen */
 
 .app-root {
   max-width: 1200px;
@@ -53,12 +53,6 @@ body {
   padding: 12px 24px;
   border-bottom: 1px solid var(--border);
   background: linear-gradient(90deg, rgba(17, 24, 39, 0.96), rgba(23, 37, 84, 0.94));
-}
-
-.app-header-left {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
 }
 
 .app-title {
@@ -199,6 +193,15 @@ body {
   color: var(--muted);
 }
 
+.form-field-inline {
+  display: flex;
+  gap: 8px;
+}
+
+.form-field-inline > div {
+  flex: 1 1 0;
+}
+
 label {
   font-size: 0.8rem;
 }
@@ -230,50 +233,6 @@ textarea:focus {
   box-shadow: 0 0 0 1px rgba(79, 209, 197, 0.5);
 }
 
-/* ICD-10 Suggestions */
-
-.icd-suggestions {
-  display: none;
-  margin-top: 4px;
-  max-height: 180px;
-  overflow-y: auto;
-  border-radius: 6px;
-  background: rgba(9, 13, 26, 0.98);
-  border: 1px solid rgba(148, 163, 184, 0.45);
-  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.5);
-  z-index: 20;
-}
-
-.icd-suggestion-item {
-  padding: 4px 8px;
-  font-size: 0.8rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 8px;
-  cursor: pointer;
-}
-
-.icd-suggestion-item-code {
-  font-weight: 600;
-  color: var(--accent);
-}
-
-.icd-suggestion-item-label {
-  color: var(--muted);
-  font-size: 0.78rem;
-}
-
-.icd-suggestion-item:hover {
-  background: rgba(30, 64, 175, 0.85);
-}
-
-.icd-helper-text {
-  margin: 2px 0 0;
-  font-size: 0.75rem;
-  color: var(--muted);
-}
-
 /* Buttons */
 
 .btn {
@@ -289,8 +248,7 @@ textarea:focus {
   cursor: pointer;
   background: rgba(15, 23, 42, 0.95);
   color: var(--text);
-  transition: background 0.15s ease, transform 0.05s ease, box-shadow 0.15s ease,
-    border-color 0.15s ease;
+  transition: background 0.15s ease, transform 0.05s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
 .btn-primary {
@@ -330,6 +288,47 @@ textarea:focus {
 .btn:active {
   transform: translateY(1px);
   box-shadow: none;
+}
+
+/* ICD-10 UI */
+
+.icd-suggestions {
+  margin-top: 4px;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.98);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  max-height: 170px;
+  overflow-y: auto;
+  display: none; /* per JS sichtbar machen */
+  z-index: 5;
+}
+
+.icd-suggestion-item {
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+}
+
+.icd-suggestion-item span.icd-code {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.icd-suggestion-item span.icd-text {
+  color: var(--muted);
+}
+
+.icd-suggestion-item:hover {
+  background: rgba(56, 178, 172, 0.2);
+}
+
+.icd-helper-text,
+.icd-selected {
+  margin: 4px 0 0;
+  font-size: 0.75rem;
+  color: var(--muted);
 }
 
 /* Empty states */
@@ -466,7 +465,7 @@ input[type="range"] {
 }
 
 .note-textarea {
-  min-height: 160px;
+  min-height: 200px;
 }
 
 /* Steps */
@@ -498,16 +497,72 @@ input[type="range"] {
 
 /* Speech */
 
+.speech-row {
+  margin-top: 10px;
+}
+
 .speech-controls {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .speech-hint {
   font-size: 0.75rem;
   color: var(--muted);
+}
+
+/* Tabs */
+
+.speech-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 8px;
+}
+
+.speech-tab {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: rgba(15, 23, 42, 0.9);
+  font-size: 0.78rem;
+  cursor: pointer;
+  color: var(--muted);
+}
+
+.speech-tab.active {
+  background: var(--accent-soft);
+  border-color: rgba(79, 209, 197, 0.9);
+  color: var(--accent);
+}
+
+.speech-tab-panels {
+  margin-top: 4px;
+}
+
+.speech-tab-panel {
+  display: none;
+  margin-bottom: 10px;
+}
+
+.speech-tab-panel.active {
+  display: block;
+}
+
+.speech-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.speech-panel-title {
+  font-size: 0.85rem;
+  color: var(--text);
+  font-weight: 600;
 }
 
 /* Score & actions */
