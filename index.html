@@ -8,16 +8,13 @@
   <style>
     :root {
       --bg: #020617;
-      --bg-elevated: #020617;
-      --card: #020617;
-      --border: #1e293b;
+      --bg-card: #020617;
+      --border: #1f2937;
       --accent: #22d3ee;
       --accent-soft: rgba(34, 211, 238, 0.12);
       --text: #e5e7eb;
       --muted: #9ca3af;
       --danger: #f97373;
-      --chip-bg: #020617;
-      --chip-active-bg: #0f172a;
     }
 
     * {
@@ -29,18 +26,59 @@
       padding: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
         sans-serif;
-      background: radial-gradient(circle at top, #0f172a 0, #020617 55%, #000 100%);
+      background: radial-gradient(circle at top, #0f172a 0, #020617 50%, #000 100%);
       color: var(--text);
     }
 
     .app-shell {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 24px 16px 48px;
+      padding: 24px 16px 40px;
     }
 
     h1, h2, h3 {
       margin: 0;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .card {
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      background: radial-gradient(circle at top left,
+        rgba(148, 163, 184, 0.08),
+        rgba(15, 23, 42, 0.97) 40%);
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.75);
+      padding: 18px 20px;
+    }
+
+    .card + .card {
+      margin-top: 18px;
+    }
+
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .title-main {
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .title-main span.sub {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 400;
     }
 
     .pill {
@@ -50,64 +88,19 @@
       border-radius: 999px;
       padding: 2px 10px;
       font-size: 11px;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.07em;
       text-transform: uppercase;
-    }
-
-    .pill-accent {
+      border: 1px solid rgba(34, 211, 238, 0.4);
       background: var(--accent-soft);
       color: var(--accent);
-      border: 1px solid rgba(34, 211, 238, 0.4);
-    }
-
-    .card {
-      border-radius: 18px;
-      border: 1px solid rgba(148, 163, 184, 0.22);
-      background: radial-gradient(circle at top left,
-        rgba(148, 163, 184, 0.08),
-        rgba(15, 23, 42, 0.96) 40%);
-      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.6);
-      padding: 16px 18px;
-    }
-
-    .card + .card {
-      margin-top: 16px;
-    }
-
-    .meta {
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    /* ---------------- Header & Layout ---------------- */
-
-    .header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    .title {
-      font-size: 24px;
-      font-weight: 600;
-      letter-spacing: -0.03em;
-      display: flex;
-      align-items: center;
-      gap: 8px;
     }
 
     .mic-indicator {
       font-size: 12px;
       border-radius: 999px;
-      padding: 4px 10px;
+      padding: 5px 10px;
       border: 1px solid var(--border);
-      background: rgba(15, 23, 42, 0.85);
+      background: rgba(15, 23, 42, 0.9);
       color: var(--muted);
       display: inline-flex;
       align-items: center;
@@ -118,31 +111,16 @@
       color: #bbf7d0;
     }
 
-    /* ---------------- Patient-Bereich ---------------- */
-
-    .patient-layout {
-      display: grid;
-      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-      gap: 16px;
-    }
-
-    @media (max-width: 900px) {
-      .patient-layout {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-
-    .section-title {
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 8px;
+    .meta {
+      font-size: 12px;
+      color: var(--muted);
     }
 
     label {
       font-size: 12px;
       color: var(--muted);
       display: block;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
 
     input[type="text"],
@@ -153,7 +131,7 @@
       width: 100%;
       border-radius: 10px;
       border: 1px solid var(--border);
-      background: rgba(15, 23, 42, 0.95);
+      background: rgba(15, 23, 42, 0.96);
       color: var(--text);
       font-size: 13px;
       padding: 8px 10px;
@@ -164,17 +142,12 @@
     select:focus,
     textarea:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.35);
+      box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.4);
     }
 
     textarea {
       resize: vertical;
-      line-height: 1.4;
-    }
-
-    .input-row {
-      display: flex;
-      gap: 8px;
+      line-height: 1.45;
     }
 
     .button {
@@ -194,16 +167,16 @@
     .button-primary {
       background: var(--accent);
       color: #020617;
-      box-shadow: 0 8px 20px rgba(34, 211, 238, 0.35);
+      box-shadow: 0 10px 24px rgba(34, 211, 238, 0.4);
     }
 
     .button-primary:hover {
-      filter: brightness(1.08);
+      filter: brightness(1.05);
       transform: translateY(-1px);
     }
 
     .button-ghost {
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(15, 23, 42, 0.9);
       color: var(--text);
       border: 1px solid var(--border);
     }
@@ -212,27 +185,56 @@
       background: rgba(15, 23, 42, 1);
     }
 
+    .button-danger {
+      background: rgba(127, 29, 29, 0.9);
+      color: #fee2e2;
+      border: 1px solid rgba(248, 113, 113, 0.7);
+    }
+
     .button-outline {
       border-radius: 999px;
       border: 1px solid var(--border);
       padding: 6px 10px;
+      font-size: 11px;
       background: transparent;
       color: var(--muted);
-      font-size: 11px;
       cursor: pointer;
     }
 
-    /* ---------------- Listen & Chips ---------------- */
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .grid-patient {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.5fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 900px) {
+      .grid-patient {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* Listen */
 
     #patient-list,
     #session-list {
       list-style: none;
-      padding: 0;
       margin: 0;
+      padding: 0;
       border-radius: 10px;
       border: 1px solid var(--border);
-      background: rgba(15, 23, 42, 0.85);
-      max-height: 260px;
+      background: rgba(15, 23, 42, 0.95);
+      max-height: 220px;
       overflow-y: auto;
     }
 
@@ -249,21 +251,23 @@
 
     #patient-list li:not(:last-child),
     #session-list li:not(:last-child) {
-      border-bottom: 1px solid rgba(30, 41, 59, 0.85);
+      border-bottom: 1px solid rgba(30, 41, 59, 0.9);
     }
 
     #patient-list li.active,
     #session-list li.active {
-      background: rgba(34, 211, 238, 0.1);
+      background: rgba(34, 211, 238, 0.12);
       border-left: 3px solid var(--accent);
     }
+
+    /* Chips */
 
     .chip {
       border-radius: 999px;
       padding: 5px 10px;
       font-size: 11px;
       border: 1px solid var(--border);
-      background: var(--chip-bg);
+      background: rgba(15, 23, 42, 0.96);
       color: var(--muted);
       cursor: pointer;
       margin: 2px;
@@ -273,18 +277,19 @@
     }
 
     .chip.active {
-      background: var(--chip-active-bg);
+      background: rgba(15, 23, 42, 1);
       border-color: var(--accent);
       color: var(--accent);
     }
 
-    /* ---------------- Slider ---------------- */
+    /* Slider */
 
     .slider-row {
       display: flex;
       flex-wrap: wrap;
       gap: 16px;
       align-items: center;
+      margin-bottom: 10px;
     }
 
     .slider-group {
@@ -299,7 +304,7 @@
       accent-color: var(--accent);
     }
 
-    /* ---------------- Tabs für Doku-Bereiche ---------------- */
+    /* Tabs für Doku-Bereiche */
 
     .tabs-wrapper {
       margin-top: 8px;
@@ -309,7 +314,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
     .tab-label {
@@ -318,8 +323,8 @@
       font-size: 12px;
       cursor: pointer;
       border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.96);
       color: var(--muted);
-      background: rgba(15, 23, 42, 0.9);
       user-select: none;
     }
 
@@ -335,7 +340,7 @@
       border: 1px solid var(--border);
       background: radial-gradient(circle at top left,
         rgba(148, 163, 184, 0.08),
-        rgba(15, 23, 42, 0.97) 40%);
+        rgba(15, 23, 42, 0.98) 40%);
       padding: 12px 14px;
     }
 
@@ -360,7 +365,7 @@
       padding: 6px 12px;
       font-size: 12px;
       border: 1px solid rgba(34, 211, 238, 0.6);
-      background: rgba(15, 23, 42, 0.9);
+      background: rgba(15, 23, 42, 0.96);
       color: var(--accent);
       cursor: pointer;
       display: inline-flex;
@@ -369,7 +374,7 @@
     }
 
     .speech-record-btn.active {
-      background: rgba(34, 197, 94, 0.12);
+      background: rgba(22, 163, 74, 0.14);
       border-color: #22c55e;
       color: #bbf7d0;
     }
@@ -380,18 +385,17 @@
       line-height: 1.5;
     }
 
-    /* ---------------- ICD Vorschläge ---------------- */
+    /* ICD Vorschläge */
 
     #patient-icd-suggestions {
-      position: relative;
-      margin-top: 4px;
+      margin-top: 2px;
       font-size: 12px;
     }
 
     .icd-suggestion-item {
       padding: 4px 8px;
       border-radius: 6px;
-      background: rgba(15, 23, 42, 0.95);
+      background: rgba(15, 23, 42, 0.96);
       border: 1px solid var(--border);
       cursor: pointer;
       margin-top: 2px;
@@ -401,7 +405,7 @@
       border-color: var(--accent);
     }
 
-    /* ---------------- Score-Box & Buttons unten ---------------- */
+    /* Score & Footer */
 
     .session-footer-row {
       display: flex;
@@ -409,7 +413,7 @@
       gap: 8px;
       justify-content: space-between;
       align-items: center;
-      margin-top: 12px;
+      margin-top: 10px;
     }
 
     .score-box {
@@ -432,13 +436,13 @@
 
     #score-chart {
       width: 100%;
-      max-width: 100%;
       border-radius: 10px;
       border: 1px solid var(--border);
-      background: rgba(15, 23, 42, 0.9);
+      background: rgba(15, 23, 42, 0.96);
+      margin-top: 10px;
     }
 
-    /* ---------------- Info-Placeholder ---------------- */
+    /* Placeholder-Karten */
 
     #no-patient-selected,
     #no-session-selected {
@@ -447,19 +451,21 @@
       padding: 12px 10px;
       border-radius: 10px;
       border: 1px dashed var(--border);
-      background: rgba(15, 23, 42, 0.7);
+      background: rgba(15, 23, 42, 0.85);
+      margin-top: 4px;
     }
   </style>
 </head>
 <body>
   <div class="app-shell">
-    <!-- Header + Willkommen -->
+    <!-- HEADER + WILLKOMMEN (volle Breite) -->
     <div class="card">
       <div class="header-row">
         <div>
-          <div class="pill pill-accent">Pilot</div>
-          <div class="title">
+          <div class="pill">Pilot</div>
+          <div class="title-main">
             Physio Doc Co-Pilot
+            <span class="sub">Strukturierte Befunderhebung & Sitzungsdokumentation für die Physiotherapie</span>
           </div>
         </div>
         <div class="mic-indicator">
@@ -475,9 +481,9 @@
       </div>
     </div>
 
-    <!-- Patienten- & Sitzungsbereich -->
-    <div class="card" style="margin-top:16px;">
-      <div class="patient-layout">
+    <!-- PATIENTEN & SITZUNGEN (zweiter Block, volle Breite, innen 2 Spalten) -->
+    <div class="card">
+      <div class="grid-patient">
         <!-- Neuer Patient -->
         <div>
           <h3 class="section-title">Neuen Patienten anlegen</h3>
@@ -506,11 +512,11 @@
           </form>
         </div>
 
-        <!-- Patientenliste & Sitzungen -->
+        <!-- Patientenliste + Sitzungen + Score -->
         <div>
           <h3 class="section-title">Patienten & Sitzungen</h3>
 
-          <div class="meta" id="no-patient-selected">
+          <div id="no-patient-selected">
             Noch kein Patient ausgewählt. Lege links einen Patienten an oder wähle einen in der Liste.
           </div>
 
@@ -520,7 +526,7 @@
               <div id="patient-meta" class="meta">Keine Zusatzinfos</div>
             </div>
 
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
               <span class="meta">Sitzungen & Verlauf</span>
               <button id="add-session-btn" type="button" class="button-ghost button" style="padding:6px 10px;">
                 + Folgetermin
@@ -529,25 +535,22 @@
 
             <ul id="session-list"></ul>
 
-            <div style="margin-top:10px;">
-              <span class="meta">Beschwerde-Score Verlauf</span>
-              <canvas id="score-chart" width="420" height="160"></canvas>
-            </div>
+            <canvas id="score-chart" width="420" height="140"></canvas>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Sitzungs-Editor: komplett über ganze Breite -->
-    <div class="card" style="margin-top:16px;">
+    <!-- AKTUELLE SITZUNG – HAUPTBEREICH (volle Breite) -->
+    <div class="card">
       <h3 class="section-title">Aktuelle Sitzung</h3>
 
-      <div id="no-session-selected" class="meta">
-        Kein Sitzungseintrag ausgewählt. Wähle oben eine Sitzung oder lege eine neue an.
+      <div id="no-session-selected">
+        Keine Sitzung ausgewählt. Wähle oben einen Eintrag oder lege einen neuen Folgetermin an.
       </div>
 
       <div id="session-editor" class="hidden">
-        <!-- Sitzungskopf -->
+        <!-- Kopf: Typ, Datum -->
         <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; margin-bottom:10px;">
           <div>
             <label for="session-type">Sitzungstyp</label>
@@ -563,17 +566,17 @@
         </div>
 
         <!-- Beschwerden / Maßnahmen / Slider -->
-        <div style="margin-bottom:12px;">
+        <div style="margin-bottom:10px;">
           <label>Beschwerden</label>
           <div id="complaint-chips"></div>
         </div>
 
-        <div style="margin-bottom:12px;">
+        <div style="margin-bottom:10px;">
           <label>Maßnahmen (heute)</label>
           <div id="measure-chips"></div>
         </div>
 
-        <div class="slider-row" style="margin-bottom:16px;">
+        <div class="slider-row">
           <div class="slider-group">
             <span>Schmerz:</span>
             <input id="pain-slider" type="range" min="0" max="10" />
@@ -586,13 +589,13 @@
           </div>
         </div>
 
-        <!-- Tabs für strukturierte Bereiche -->
+        <!-- Tabs für strukturierte Bereiche (Anamnese etc.) -->
         <div class="tabs-wrapper">
-          <!-- Tab-Buttons -->
+          <!-- Tab Buttons -->
           <div class="tab-buttons" id="tab-buttons">
             <button type="button" class="tab-label active" data-tab="anamnese">Anamnese</button>
             <button type="button" class="tab-label" data-tab="befund">Befund</button>
-            <button type="button" class="tab-label" data-tab="diagnose">Diagnose / Assessment</button>
+            <button type="button" class="tab-label" data-tab="diagnose">Diagnose</button>
             <button type="button" class="tab-label" data-tab="therapieplan">Therapieplan</button>
             <button type="button" class="tab-label" data-tab="verlauf">Verlauf</button>
             <button type="button" class="tab-label" data-tab="epikrise">Epikrise</button>
@@ -653,9 +656,9 @@
             <div class="tab-panel" data-panel="diagnose">
               <div class="tab-panel-header">
                 <div>
-                  <strong style="font-size:13px;">Diagnose / physiotherapeutische Einschätzung</strong>
+                  <strong style="font-size:13px;">Diagnose / Einschätzung</strong>
                   <div class="meta">
-                    Funktionsdiagnose, Hypothesen, therapeutische Einschätzung.
+                    Physiotherapeutische Funktionsdiagnose und klinische Einschätzung.
                   </div>
                 </div>
                 <button
@@ -679,7 +682,7 @@
                 <div>
                   <strong style="font-size:13px;">Therapieplan</strong>
                   <div class="meta">
-                    Geplante Maßnahmen, Frequenz, Dauer, Heimübungen, Prioritäten.
+                    Geplante Maßnahmen, Frequenz, Heimübungen, Ziele.
                   </div>
                 </div>
                 <button
@@ -701,7 +704,7 @@
             <div class="tab-panel" data-panel="verlauf">
               <div class="tab-panel-header">
                 <div>
-                  <strong style="font-size:13px;">Verlauf & Reaktion auf die Therapie</strong>
+                  <strong style="font-size:13px;">Verlauf & Reaktion auf Therapie</strong>
                   <div class="meta">
                     Reaktionen, Veränderungen, Anpassungen zwischen den Sitzungen.
                   </div>
@@ -772,7 +775,7 @@
         </div>
 
         <!-- Gesamtbericht unten -->
-        <div style="margin-top:18px;">
+        <div style="margin-top:16px;">
           <label for="session-note">Gesamtdokumentation (generiert)</label>
           <textarea
             id="session-note"
@@ -781,7 +784,7 @@
           ></textarea>
         </div>
 
-        <!-- Footer Buttons + Score -->
+        <!-- Footer-Buttons + Score -->
         <div class="session-footer-row">
           <div class="score-box">
             <div>
@@ -799,7 +802,7 @@
             <button id="save-session-btn" type="button" class="button button-primary">
               💾 Sitzung speichern
             </button>
-            <button id="delete-session-btn" type="button" class="button button-ghost" style="color:#fca5a5; border-color:#4b5563;">
+            <button id="delete-session-btn" type="button" class="button button-ghost button-danger">
               🗑️ Sitzung löschen
             </button>
           </div>
@@ -808,12 +811,12 @@
     </div>
   </div>
 
-  <!-- ICD-10 Codes (optional) -->
+  <!-- Optional ICD-10-Datei -->
   <!-- <script src="icd10-codes.js"></script> -->
   <script src="app.js"></script>
 
+  <!-- Tabs-Logik (nur Layout, unabhängig von app.js) -->
   <script>
-    // Simple Tabs-Logik für die Doku-Bereiche (Layout-only, unabhängig von app.js)
     document.addEventListener("DOMContentLoaded", () => {
       const tabButtons = document.querySelectorAll(".tab-label");
       const tabPanels = document.querySelectorAll(".tab-panel");
