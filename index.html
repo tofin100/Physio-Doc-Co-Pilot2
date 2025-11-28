@@ -330,276 +330,197 @@
                       🎙️ Aufnahme starten (aktiver Bereich)
                     </button>
                     <span id="speech-hint" class="speech-hint">
-                      Wähle unten „Aufnahme für …“ für den gewünschten Abschnitt
-                      und starte/stoppe hier.
+                      Klicke beim gewünschten Abschnitt auf „Aufnahme für … wählen“
+                      und starte/stoppe dann hier.
                     </span>
                   </div>
                 </div>
 
-                <!-- Strukturierte Bereiche: Reiter -->
-                <div class="editor-row">
-                  <div class="speech-structured-wrapper">
-                    <div class="speech-tabs" role="tablist">
-                      <button
-                        type="button"
-                        class="speech-tab active"
-                        data-target="tab-anamnese"
-                      >
-                        Anamnese
-                      </button>
-                      <button
-                        type="button"
-                        class="speech-tab"
-                        data-target="tab-befund"
-                      >
-                        Aktueller Befund / Status
-                      </button>
-                      <button
-                        type="button"
-                        class="speech-tab"
-                        data-target="tab-diagnose"
-                      >
-                        Diagnose (physio / ärztlich)
-                      </button>
-                      <button
-                        type="button"
-                        class="speech-tab"
-                        data-target="tab-therapieplan"
-                      >
-                        Therapieplan
-                      </button>
-                      <button
-                        type="button"
-                        class="speech-tab"
-                        data-target="tab-verlauf"
-                      >
-                        Verlauf &amp; Doku
-                      </button>
-                      <button
-                        type="button"
-                        class="speech-tab"
-                        data-target="tab-epikrise"
-                      >
-                        Epikrise / Empfehlung
-                      </button>
-                    </div>
+                <!-- Alle strukturierten Bereiche UNTEREINANDER -->
 
-                    <!-- Panels -->
-                    <div class="speech-tab-panels">
-                      <!-- Anamnese -->
-                      <section
-                        id="tab-anamnese"
-                        class="speech-tab-panel active"
-                        aria-label="Anamnese"
-                      >
-                        <h4>Anamnese</h4>
-                        <p class="speech-description">
-                          Vorgeschichte der Beschwerden, frühere Erkrankungen,
-                          bisherige Behandlungen, bereits besuchte Fachärzte
-                          etc.
-                        </p>
-                        <p>
-                          <button
-                            type="button"
-                            class="btn btn-secondary speech-record-btn"
-                            data-target-textarea="speech-anamnese"
-                          >
-                            🎙️ Aufnahme für Anamnese wählen
-                          </button>
-                        </p>
-                        <div class="form-field">
-                          <label for="speech-anamnese">
-                            Anamnesenotizen
-                            <span class="field-hint">(Transkript &amp; Ergänzungen)</span>
-                          </label>
-                          <textarea
-                            id="speech-anamnese"
-                            rows="3"
-                            placeholder="Hier wird die Anamnese automatisch transkribiert – du kannst den Text jederzeit anpassen."
-                          ></textarea>
-                        </div>
-                      </section>
-
-                      <!-- Aktueller Befund / Status -->
-                      <section
-                        id="tab-befund"
-                        class="speech-tab-panel"
-                        aria-label="Aktueller Befund / Status"
-                      >
-                        <h4>Aktueller Befund / Status</h4>
-                        <p class="speech-description">
-                          Beschreibung der aktuellen Beschwerden, körperlichen
-                          Befunde, Einschätzung von Beweglichkeit,
-                          Schmerzbildern und Funktionsstörungen (ggf. inkl.
-                          Bildgebung, ärztlichen Befunden).
-                        </p>
-                        <p>
-                          <button
-                            type="button"
-                            class="btn btn-secondary speech-record-btn"
-                            data-target-textarea="speech-befund"
-                          >
-                            🎙️ Aufnahme für Befund wählen
-                          </button>
-                        </p>
-                        <div class="form-field">
-                          <label for="speech-befund">
-                            Befundnotizen
-                            <span class="field-hint">(Transkript &amp; Ergänzungen)</span>
-                          </label>
-                          <textarea
-                            id="speech-befund"
-                            rows="3"
-                            placeholder="Hier wird der aktuelle Befund transkribiert."
-                          ></textarea>
-                        </div>
-                      </section>
-
-                      <!-- Diagnose -->
-                      <section
-                        id="tab-diagnose"
-                        class="speech-tab-panel"
-                        aria-label="Diagnose (physiotherapeutisch / ärztlich)"
-                      >
-                        <h4>Diagnose (physiotherapeutisch / ärztlich)</h4>
-                        <p class="speech-description">
-                          Ergänzung zur ärztlichen Diagnose aus
-                          physiotherapeutischer Sicht (Funktionsdiagnose,
-                          klinische Einschätzung, Prioritäten).
-                        </p>
-                        <p>
-                          <button
-                            type="button"
-                            class="btn btn-secondary speech-record-btn"
-                            data-target-textarea="speech-diagnose"
-                          >
-                            🎙️ Aufnahme für Diagnose wählen
-                          </button>
-                        </p>
-                        <div class="form-field">
-                          <label for="speech-diagnose">
-                            Diagnosenotizen
-                            <span class="field-hint">(Transkript &amp; Ergänzungen)</span>
-                          </label>
-                          <textarea
-                            id="speech-diagnose"
-                            rows="3"
-                            placeholder="Hier wird die physiotherapeutische Diagnose transkribiert."
-                          ></textarea>
-                        </div>
-                      </section>
-
-                      <!-- Therapieplan -->
-                      <section
-                        id="tab-therapieplan"
-                        class="speech-tab-panel"
-                        aria-label="Therapievorschlag / Therapieplan"
-                      >
-                        <h4>Therapievorschlag / Therapieplan</h4>
-                        <p class="speech-description">
-                          Welche therapeutischen Maßnahmen sind vorgesehen
-                          (z. B. Krankengymnastik, manuelle Therapie,
-                          Bewegungsübungen), wie häufig, mit welchem Ziel – zur
-                          strukturierten und nachvollziehbaren Planung.
-                        </p>
-                        <p>
-                          <button
-                            type="button"
-                            class="btn btn-secondary speech-record-btn"
-                            data-target-textarea="speech-therapieplan"
-                          >
-                            🎙️ Aufnahme für Therapieplan wählen
-                          </button>
-                        </p>
-                        <div class="form-field">
-                          <label for="speech-therapieplan">
-                            Therapieplannotizen
-                            <span class="field-hint">(Transkript &amp; Ergänzungen)</span>
-                          </label>
-                          <textarea
-                            id="speech-therapieplan"
-                            rows="3"
-                            placeholder="Hier wird der Therapieplan transkribiert."
-                          ></textarea>
-                        </div>
-                      </section>
-
-                      <!-- Verlauf & Dokumentation -->
-                      <section
-                        id="tab-verlauf"
-                        class="speech-tab-panel"
-                        aria-label="Verlauf und Dokumentation der durchgeführten Sitzungen / Therapien"
-                      >
-                        <h4>
-                          Verlauf und Dokumentation der durchgeführten
-                          Sitzungen / Therapien
-                        </h4>
-                        <p class="speech-description">
-                          Was wurde gemacht, wie hat sich der Zustand verändert,
-                          relevante Zwischenbefunde – wichtig für Fortführung
-                          oder Verlängerung der Verordnung.
-                        </p>
-                        <p>
-                          <button
-                            type="button"
-                            class="btn btn-secondary speech-record-btn"
-                            data-target-textarea="speech-verlauf"
-                          >
-                            🎙️ Aufnahme für Verlauf wählen
-                          </button>
-                        </p>
-                        <div class="form-field">
-                          <label for="speech-verlauf">
-                            Verlaufsnotizen
-                            <span class="field-hint">(Transkript &amp; Ergänzungen)</span>
-                          </label>
-                          <textarea
-                            id="speech-verlauf"
-                            rows="3"
-                            placeholder="Hier wird der Therapieverlauf transkribiert."
-                          ></textarea>
-                        </div>
-                      </section>
-
-                      <!-- Epikrise / Bewertung / Empfehlung -->
-                      <section
-                        id="tab-epikrise"
-                        class="speech-tab-panel"
-                        aria-label="Epikrise / Bewertung / Empfehlung"
-                      >
-                        <h4>Epikrise / Bewertung / Empfehlung</h4>
-                        <p class="speech-description">
-                          Abschließende Beurteilung des bisherigen Verlaufs und
-                          Empfehlung für weitere therapeutische Maßnahmen oder
-                          ärztliche Rücksprache.
-                        </p>
-                        <p>
-                          <button
-                            type="button"
-                            class="btn btn-secondary speech-record-btn"
-                            data-target-textarea="speech-epikrise"
-                          >
-                            🎙️ Aufnahme für Epikrise wählen
-                          </button>
-                        </p>
-                        <div class="form-field">
-                          <label for="speech-epikrise">
-                            Epikrisenotizen
-                            <span class="field-hint">(Transkript &amp; Ergänzungen)</span>
-                          </label>
-                          <textarea
-                            id="speech-epikrise"
-                            rows="3"
-                            placeholder="Hier wird die Epikrise / Empfehlung transkribiert."
-                          ></textarea>
-                        </div>
-                      </section>
-                    </div>
+                <!-- Anamnese -->
+                <div class="editor-row speech-section">
+                  <h4>Anamnese</h4>
+                  <p class="speech-description">
+                    Vorgeschichte der Beschwerden, frühere Erkrankungen,
+                    bisherige Behandlungen, bereits besuchte Fachärzte etc.
+                  </p>
+                  <p>
+                    <button
+                      type="button"
+                      class="btn btn-secondary speech-record-btn"
+                      data-target-textarea="speech-anamnese"
+                    >
+                      🎙️ Aufnahme für Anamnese wählen
+                    </button>
+                  </p>
+                  <div class="form-field">
+                    <label for="speech-anamnese">
+                      Anamnesenotizen
+                      <span class="field-hint">(Transkript &amp; Ergänzungen)</span>
+                    </label>
+                    <textarea
+                      id="speech-anamnese"
+                      rows="3"
+                      placeholder="Hier wird die Anamnese automatisch transkribiert – du kannst den Text jederzeit anpassen."
+                    ></textarea>
                   </div>
                 </div>
 
-                <!-- Gesamt-Transkript (freier Abschnitt mit eigenem Button) -->
-                <div class="editor-row">
+                <!-- Aktueller Befund / Status -->
+                <div class="editor-row speech-section">
+                  <h4>Aktueller Befund / Status</h4>
+                  <p class="speech-description">
+                    Beschreibung der aktuellen Beschwerden, körperlichen
+                    Befunde, Einschätzung von Beweglichkeit, Schmerzbildern
+                    und Funktionsstörungen (je nach Relevanz inkl. Bildgebung
+                    und ärztlichen Befunden).
+                  </p>
+                  <p>
+                    <button
+                      type="button"
+                      class="btn btn-secondary speech-record-btn"
+                      data-target-textarea="speech-befund"
+                    >
+                      🎙️ Aufnahme für Befund wählen
+                    </button>
+                  </p>
+                  <div class="form-field">
+                    <label for="speech-befund">
+                      Befundnotizen
+                      <span class="field-hint">(Transkript &amp; Ergänzungen)</span>
+                    </label>
+                    <textarea
+                      id="speech-befund"
+                      rows="3"
+                      placeholder="Hier wird der aktuelle Befund transkribiert."
+                    ></textarea>
+                  </div>
+                </div>
+
+                <!-- Diagnose -->
+                <div class="editor-row speech-section">
+                  <h4>Diagnose (physiotherapeutisch / ärztlich)</h4>
+                  <p class="speech-description">
+                    In Anlehnung an die ärztliche Diagnose, ergänzt durch die
+                    physiotherapeutische Funktionsdiagnose und klinische
+                    Einschätzung.
+                  </p>
+                  <p>
+                    <button
+                      type="button"
+                      class="btn btn-secondary speech-record-btn"
+                      data-target-textarea="speech-diagnose"
+                    >
+                      🎙️ Aufnahme für Diagnose wählen
+                    </button>
+                  </p>
+                  <div class="form-field">
+                    <label for="speech-diagnose">
+                      Diagnosenotizen
+                      <span class="field-hint">(Transkript &amp; Ergänzungen)</span>
+                    </label>
+                    <textarea
+                      id="speech-diagnose"
+                      rows="3"
+                      placeholder="Hier wird die physiotherapeutische Diagnose transkribiert."
+                    ></textarea>
+                  </div>
+                </div>
+
+                <!-- Therapievorschlag / Therapieplan -->
+                <div class="editor-row speech-section">
+                  <h4>Therapievorschlag / Therapieplan</h4>
+                  <p class="speech-description">
+                    Welche therapeutischen Maßnahmen sind vorgesehen
+                    (z. B. Krankengymnastik, manuelle Therapie,
+                    Bewegungsübungen), wie oft, mit welchem Ziel – strukturiert
+                    und nachvollziehbar, auch gegenüber der Kasse.
+                  </p>
+                  <p>
+                    <button
+                      type="button"
+                      class="btn btn-secondary speech-record-btn"
+                      data-target-textarea="speech-therapieplan"
+                    >
+                      🎙️ Aufnahme für Therapieplan wählen
+                    </button>
+                  </p>
+                  <div class="form-field">
+                    <label for="speech-therapieplan">
+                      Therapieplannotizen
+                      <span class="field-hint">(Transkript &amp; Ergänzungen)</span>
+                    </label>
+                    <textarea
+                      id="speech-therapieplan"
+                      rows="3"
+                      placeholder="Hier wird der Therapieplan transkribiert."
+                    ></textarea>
+                  </div>
+                </div>
+
+                <!-- Verlauf & Dokumentation -->
+                <div class="editor-row speech-section">
+                  <h4>Verlauf und Dokumentation der durchgeführten Sitzungen / Therapien</h4>
+                  <p class="speech-description">
+                    Was wurde gemacht, wie hat sich der Zustand verändert,
+                    relevante Zwischenbefunde – wichtig für die Fortführung der
+                    Therapie oder eine Verlängerung der Verordnung.
+                  </p>
+                  <p>
+                    <button
+                      type="button"
+                      class="btn btn-secondary speech-record-btn"
+                      data-target-textarea="speech-verlauf"
+                    >
+                      🎙️ Aufnahme für Verlauf wählen
+                    </button>
+                  </p>
+                  <div class="form-field">
+                    <label for="speech-verlauf">
+                      Verlaufsnotizen
+                      <span class="field-hint">(Transkript &amp; Ergänzungen)</span>
+                    </label>
+                    <textarea
+                      id="speech-verlauf"
+                      rows="3"
+                      placeholder="Hier wird der Therapieverlauf transkribiert."
+                    ></textarea>
+                  </div>
+                </div>
+
+                <!-- Epikrise / Bewertung / Empfehlung -->
+                <div class="editor-row speech-section">
+                  <h4>Epikrise / Bewertung / Empfehlung</h4>
+                  <p class="speech-description">
+                    Abschließende Beurteilung des bisherigen Verlaufs sowie
+                    Empfehlung für weitere therapeutische Maßnahmen oder
+                    ärztliche Rücksprache.
+                  </p>
+                  <p>
+                    <button
+                      type="button"
+                      class="btn btn-secondary speech-record-btn"
+                      data-target-textarea="speech-epikrise"
+                    >
+                      🎙️ Aufnahme für Epikrise wählen
+                    </button>
+                  </p>
+                  <div class="form-field">
+                    <label for="speech-epikrise">
+                      Epikrisenotizen
+                      <span class="field-hint">(Transkript &amp; Ergänzungen)</span>
+                    </label>
+                    <textarea
+                      id="speech-epikrise"
+                      rows="3"
+                      placeholder="Hier wird die Epikrise / Empfehlung transkribiert."
+                    ></textarea>
+                  </div>
+                </div>
+
+                <!-- Gesamt-Notizen / Roh-Transkript -->
+                <div class="editor-row speech-section">
                   <h4>Gesamt-Notizen / Roh-Transkript</h4>
                   <p class="speech-description">
                     Optionaler freier Bereich für Notizen, die nicht in die
@@ -619,8 +540,7 @@
                     <label for="speech-notes">
                       Gesamt-Notizen
                       <span class="field-hint">
-                        freies Transkript, wird bei Bedarf in die Gesamtdoku
-                        übernommen
+                        freies Transkript, kann in die Gesamtdoku übernommen werden
                       </span>
                     </label>
                     <textarea
