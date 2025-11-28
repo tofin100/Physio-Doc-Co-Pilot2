@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta
     name="description"
-    content="Pilot einer browserbasierten Physio-Dokumentationshilfe: strukturierte Doku in unter 60 Sekunden, alle Daten lokal im Browser."
+    content="Pilot einer browserbasierten Physio-Dokumentationshilfe: strukturierte Doku mit Sprachtranskription, alle Daten lokal im Browser."
   />
   <meta name="theme-color" content="#0b1020" />
 
@@ -23,7 +23,7 @@
           <span class="app-badge">Pilot</span>
         </h1>
         <p class="app-subtitle">
-          Patient anlegen, ICD-10 wählen, strukturierte Bereiche diktieren – alle Daten bleiben lokal im Browser.
+          Patient anlegen, ICD-10 wählen, Abschnitte diktieren – alle Daten bleiben lokal im Browser.
         </p>
       </div>
       <div class="app-header-right">
@@ -97,15 +97,15 @@
                 </div>
               </div>
 
+              <!-- ICD-10: bleibt vorbereitet, auch wenn wir uns gerade auf die Transkription konzentrieren -->
               <div class="form-field">
                 <label for="patient-icd-input">
                   ICD-10 Hauptdiagnose
-                  <span class="field-hint">(Pflichtfeld, Code oder Text)</span>
+                  <span class="field-hint">(Code oder Text, optional im Pilot)</span>
                 </label>
                 <input
                   type="text"
                   id="patient-icd-input"
-                  required
                   placeholder="z. B. M54.5 Lumbalgie"
                 />
                 <div
@@ -226,7 +226,7 @@
                   <span class="step-badge">1</span> Beschwerden &amp; Maßnahmen
                   wählen
                   <span class="step-separator">→</span>
-                  <span class="step-badge">2</span> Einzelne Bereiche diktieren
+                  <span class="step-badge">2</span> Bereiche diktieren
                   <span class="step-separator">→</span>
                   <span class="step-badge">3</span> Gesamtdoku generieren &amp;
                   kopieren
@@ -319,24 +319,7 @@
                   </div>
                 </div>
 
-                <!-- Sprachsteuerung: globaler Aufnahme-Button -->
-                <div class="editor-row speech-row">
-                  <div class="speech-controls">
-                    <button
-                      id="speech-toggle-btn"
-                      type="button"
-                      class="btn btn-secondary"
-                    >
-                      🎙️ Aufnahme starten (aktiver Bereich)
-                    </button>
-                    <span id="speech-hint" class="speech-hint">
-                      Klicke beim gewünschten Abschnitt auf „Aufnahme für … wählen“
-                      und starte/stoppe dann hier.
-                    </span>
-                  </div>
-                </div>
-
-                <!-- Alle strukturierten Bereiche UNTEREINANDER -->
+                <!-- AB HIER: alle Bereiche mit eigenem Transkriptions-Button -->
 
                 <!-- Anamnese -->
                 <div class="editor-row speech-section">
@@ -351,7 +334,7 @@
                       class="btn btn-secondary speech-record-btn"
                       data-target-textarea="speech-anamnese"
                     >
-                      🎙️ Aufnahme für Anamnese wählen
+                      🎙️ Transkription für Anamnese starten / stoppen
                     </button>
                   </p>
                   <div class="form-field">
@@ -371,10 +354,10 @@
                 <div class="editor-row speech-section">
                   <h4>Aktueller Befund / Status</h4>
                   <p class="speech-description">
-                    Beschreibung der aktuellen Beschwerden, körperlichen
-                    Befunde, Einschätzung von Beweglichkeit, Schmerzbildern
-                    und Funktionsstörungen (je nach Relevanz inkl. Bildgebung
-                    und ärztlichen Befunden).
+                    Beschreibung der aktuellen Beschwerden, körperlichen Befunde,
+                    Einschätzung von Beweglichkeit, Schmerzbildern und
+                    Funktionsstörungen (je nach Relevanz inkl. Bildgebung und
+                    ärztlichen Befunden).
                   </p>
                   <p>
                     <button
@@ -382,7 +365,7 @@
                       class="btn btn-secondary speech-record-btn"
                       data-target-textarea="speech-befund"
                     >
-                      🎙️ Aufnahme für Befund wählen
+                      🎙️ Transkription für Befund starten / stoppen
                     </button>
                   </p>
                   <div class="form-field">
@@ -412,7 +395,7 @@
                       class="btn btn-secondary speech-record-btn"
                       data-target-textarea="speech-diagnose"
                     >
-                      🎙️ Aufnahme für Diagnose wählen
+                      🎙️ Transkription für Diagnose starten / stoppen
                     </button>
                   </p>
                   <div class="form-field">
@@ -443,7 +426,7 @@
                       class="btn btn-secondary speech-record-btn"
                       data-target-textarea="speech-therapieplan"
                     >
-                      🎙️ Aufnahme für Therapieplan wählen
+                      🎙️ Transkription für Therapieplan starten / stoppen
                     </button>
                   </p>
                   <div class="form-field">
@@ -473,7 +456,7 @@
                       class="btn btn-secondary speech-record-btn"
                       data-target-textarea="speech-verlauf"
                     >
-                      🎙️ Aufnahme für Verlauf wählen
+                      🎙️ Transkription für Verlauf starten / stoppen
                     </button>
                   </p>
                   <div class="form-field">
@@ -503,7 +486,7 @@
                       class="btn btn-secondary speech-record-btn"
                       data-target-textarea="speech-epikrise"
                     >
-                      🎙️ Aufnahme für Epikrise wählen
+                      🎙️ Transkription für Epikrise starten / stoppen
                     </button>
                   </p>
                   <div class="form-field">
@@ -533,7 +516,7 @@
                       class="btn btn-secondary speech-record-btn"
                       data-target-textarea="speech-notes"
                     >
-                      🎙️ Aufnahme für Gesamt-Notizen wählen
+                      🎙️ Transkription für Gesamt-Notizen starten / stoppen
                     </button>
                   </p>
                   <div class="form-field">
