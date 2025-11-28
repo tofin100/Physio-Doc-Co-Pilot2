@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta
     name="description"
-    content="Pilot einer browserbasierten Physio-Dokumentationshilfe: strukturierte Doku in unter 60 Sekunden, alle Daten bleiben lokal im Browser."
+    content="Pilot einer browserbasierten Physio-Dokumentationshilfe: strukturierte Doku in unter 60 Sekunden, alle Daten lokal im Browser."
   />
   <meta name="theme-color" content="#0b1020" />
 
@@ -23,11 +23,15 @@
           <span class="app-badge">Pilot</span>
         </h1>
         <p class="app-subtitle">
-          ICD-10 eingeben, kurz klicken, Doku generieren – alle Daten bleiben lokal im Browser.
+          Patient anlegen, ICD-10 wählen, strukturiert diktieren – alle Daten bleiben lokal im Browser.
         </p>
       </div>
       <div class="app-header-right">
-        <span id="speech-status-indicator" class="status-indicator" aria-live="polite">
+        <span
+          id="speech-status-indicator"
+          class="status-indicator"
+          aria-live="polite"
+        >
           Mikrofon nicht aktiv
         </span>
       </div>
@@ -42,18 +46,29 @@
             <h2 class="panel-title">Patienten</h2>
           </header>
 
-          <!-- Liste -->
-          <ul id="patient-list" class="list patient-list" aria-label="Patientenliste">
+          <!-- Liste der Patienten -->
+          <ul
+            id="patient-list"
+            class="list patient-list"
+            aria-label="Patientenliste"
+          >
             <!-- per JS -->
           </ul>
 
           <div class="panel-divider" role="separator" aria-hidden="true"></div>
 
           <!-- Neuer Patient -->
-          <section class="new-patient-section" aria-label="Neuen Patienten anlegen">
+          <section
+            class="new-patient-section"
+            aria-label="Neuen Patienten anlegen"
+          >
             <h3 class="panel-subtitle">Neuer Patient</h3>
 
-            <form id="new-patient-form" class="form form-vertical" autocomplete="off">
+            <form
+              id="new-patient-form"
+              class="form form-vertical"
+              autocomplete="off"
+            >
               <div class="form-field">
                 <label for="patient-name-input">
                   Name <span class="field-hint">(Pflichtfeld)</span>
@@ -66,48 +81,54 @@
                 />
               </div>
 
-              <div class="form-field">
-                <label for="patient-year-input">
-                  Geburtsjahr <span class="field-hint">(optional)</span>
-                </label>
-                <input
-                  type="number"
-                  id="patient-year-input"
-                  min="1900"
-                  max="2100"
-                  inputmode="numeric"
-                  placeholder="1985"
-                />
+              <div class="form-field form-field-inline">
+                <div>
+                  <label for="patient-year-input">
+                    Geburtsjahr <span class="field-hint">(optional)</span>
+                  </label>
+                  <input
+                    type="number"
+                    id="patient-year-input"
+                    min="1900"
+                    max="2100"
+                    inputmode="numeric"
+                    placeholder="1985"
+                  />
+                </div>
               </div>
 
-              <!-- ICD-10 Hauptdiagnose -->
               <div class="form-field">
                 <label for="patient-icd-input">
                   ICD-10 Hauptdiagnose
-                  <span class="field-hint">(Pflichtfeld, z. B. M54.5)</span>
+                  <span class="field-hint">(Pflichtfeld, Code oder Text)</span>
                 </label>
                 <input
                   type="text"
                   id="patient-icd-input"
-                  placeholder="z. B. M54.5 Kreuzschmerz"
-                  autocomplete="off"
                   required
+                  placeholder="z. B. M54.5 Lumbalgie"
                 />
                 <div
                   id="patient-icd-suggestions"
-                  class="icd-suggestions"
+                  class="icd-suggestions-panel"
                   aria-label="ICD-10 Vorschläge"
-                ></div>
-                <p id="patient-icd-selected" class="icd-selected">
+                >
+                  <!-- per JS -->
+                </div>
+              </div>
+
+              <div class="form-field">
+                <span class="field-hint">Ausgewählte Diagnose</span>
+                <div
+                  id="patient-icd-selected"
+                  class="icd-selected-display"
+                >
                   Noch keine Diagnose ausgewählt.
-                </p>
-                <p class="icd-helper-text">
-                  Tipp: Code oder Text eingeben (z.&nbsp;B. „M54“ oder „Schulter“) und Vorschlag auswählen.
-                </p>
+                </div>
               </div>
 
               <button type="submit" class="btn btn-primary btn-full">
-                Schnell anlegen & Erstbefund starten
+                Schnell anlegen &amp; Erstbefund starten
               </button>
             </form>
           </section>
@@ -117,13 +138,19 @@
       <!-- Hauptbereich -->
       <section class="main-content">
         <!-- Kein Patient ausgewählt -->
-        <section id="no-patient-selected" class="empty-state" aria-live="polite">
+        <section
+          id="no-patient-selected"
+          class="empty-state"
+          aria-live="polite"
+        >
           <h2 class="empty-title">Willkommen 👋</h2>
           <p class="empty-text">
-            Lege links einen Patienten mit ICD-10-Hauptdiagnose an – wir starten automatisch mit einem Erstbefund mit heutigem Datum.
+            Lege links einen Patienten an – wir starten automatisch mit einem
+            Erstbefund mit heutigem Datum.
           </p>
           <p class="empty-text secondary">
-            Dies ist eine Pilotversion: alle Daten werden ausschließlich lokal in deinem Browser gespeichert.
+            Dies ist eine Pilotversion: alle Daten werden ausschließlich lokal
+            in deinem Browser gespeichert.
           </p>
         </section>
 
@@ -141,7 +168,11 @@
               <p id="patient-meta" class="patient-meta"></p>
             </div>
             <div class="patient-header-actions">
-              <button id="add-session-btn" class="btn btn-secondary" type="button">
+              <button
+                id="add-session-btn"
+                class="btn btn-secondary"
+                type="button"
+              >
                 + Folgetermin
               </button>
             </div>
@@ -155,7 +186,11 @@
                 <h3 class="panel-title">Sitzungen & Verlauf</h3>
               </header>
 
-              <ul id="session-list" class="list session-list" aria-label="Liste der Sitzungen">
+              <ul
+                id="session-list"
+                class="list session-list"
+                aria-label="Liste der Sitzungen"
+              >
                 <!-- per JS -->
               </ul>
 
@@ -168,7 +203,8 @@
                   aria-label="Verlauf des Beschwerde-Scores"
                   role="img"
                 >
-                  Dein Browser unterstützt kein Canvas – Score-Verlauf nicht verfügbar.
+                  Dein Browser unterstützt kein Canvas – Score-Verlauf nicht
+                  verfügbar.
                 </canvas>
               </div>
             </section>
@@ -178,19 +214,23 @@
               <!-- Kein Termin -->
               <div id="no-session-selected" class="empty-state small">
                 <p class="empty-text">
-                  Noch keine Sitzung ausgewählt. Lege links einen Patienten an – wir starten automatisch mit einer Erstbefund-Sitzung.
+                  Noch keine Sitzung ausgewählt. Lege links einen Patienten an –
+                  wir starten automatisch mit einer Erstbefund-Sitzung.
                 </p>
               </div>
 
               <!-- Editor -->
               <div id="session-editor" class="session-editor hidden">
-                <!-- Steps -->
+                <!-- Leitlinie oben -->
                 <div class="editor-steps">
-                  <span class="step-badge">1</span> Beschwerden wählen
+                  <span class="step-badge">1</span> Beschwerden &amp; Maßnahmen
+                  wählen
                   <span class="step-separator">→</span>
-                  <span class="step-badge">2</span> Maßnahmen anklicken
+                  <span class="step-badge">2</span> Strukturierte Bereiche
+                  diktieren
                   <span class="step-separator">→</span>
-                  <span class="step-badge">3</span> Doku generieren &amp; kopieren
+                  <span class="step-badge">3</span> Gesamtdoku generieren &amp;
+                  kopieren
                 </div>
 
                 <!-- Basisinfos -->
@@ -213,7 +253,7 @@
                 <div class="editor-row">
                   <div class="chip-group">
                     <div class="chip-group-header">
-                      <span class="chip-group-title">Beschwerden</span>
+                      <span class="chip-group-title">Beschwerden (Kurzfassung)</span>
                       <span class="chip-group-hint">Mehrfachauswahl möglich</span>
                     </div>
                     <div id="complaint-chips" class="chips"></div>
@@ -224,8 +264,8 @@
                 <div class="editor-row">
                   <div class="chip-group">
                     <div class="chip-group-header">
-                      <span class="chip-group-title">Maßnahmen</span>
-                      <span class="chip-group-hint">heutige Behandlung</span>
+                      <span class="chip-group-title">Maßnahmen (heutige Behandlung)</span>
+                      <span class="chip-group-hint">für Score & Kurzplan</span>
                     </div>
                     <div id="measure-chips" class="chips"></div>
                   </div>
@@ -246,7 +286,13 @@
                         step="1"
                         value="5"
                       />
-                      <span id="pain-value" class="slider-value" aria-live="polite">5</span>
+                      <span
+                        id="pain-value"
+                        class="slider-value"
+                        aria-live="polite"
+                      >
+                        5
+                      </span>
                     </div>
                   </div>
 
@@ -263,231 +309,328 @@
                         step="1"
                         value="5"
                       />
-                      <span id="function-value" class="slider-value" aria-live="polite">5</span>
+                      <span
+                        id="function-value"
+                        class="slider-value"
+                        aria-live="polite"
+                      >
+                        5
+                      </span>
                     </div>
                   </div>
                 </div>
 
-                <!-- Sprache / Transkription in Reitern -->
+                <!-- Sprachsteuerung: globaler Aufnahme-Button -->
                 <div class="editor-row speech-row">
                   <div class="speech-controls">
-                    <!-- Globaler Button: startet/stoppt Aufnahme für das aktuell aktive Feld -->
-                    <button id="speech-toggle-btn" type="button" class="btn btn-secondary">
+                    <button
+                      id="speech-toggle-btn"
+                      type="button"
+                      class="btn btn-secondary"
+                    >
                       🎙️ Aufnahme starten (aktiver Bereich)
                     </button>
                     <span id="speech-hint" class="speech-hint">
-                      Bereich wählen („Aufnahme für diesen Bereich“) und dann hier Start/Stop drücken.
+                      Wähle unten einen Bereich („Aufnahme für …“), dann hier
+                      starten/stoppen.
                     </span>
                   </div>
+                </div>
 
-                  <!-- Reiter -->
-                  <div class="speech-tabs">
-                    <button type="button" class="speech-tab active" data-target="speech-tab-anamnese">
-                      Anamnese
-                    </button>
-                    <button type="button" class="speech-tab" data-target="speech-tab-befund">
-                      Aktueller Befund / Status
-                    </button>
-                    <button type="button" class="speech-tab" data-target="speech-tab-diagnose">
-                      Diagnose (physiotherapeutisch / ärztlich)
-                    </button>
-                    <button type="button" class="speech-tab" data-target="speech-tab-therapieplan">
-                      Therapievorschlag / Therapieplan
-                    </button>
-                    <button type="button" class="speech-tab" data-target="speech-tab-verlauf">
-                      Verlauf &amp; Dokumentation
-                    </button>
-                    <button type="button" class="speech-tab" data-target="speech-tab-epikrise">
-                      Epikrise / Bewertung / Empfehlung
-                    </button>
-                  </div>
+                <!-- Strukturierte Bereiche: Reiter -->
+                <div class="editor-row">
+                  <div class="speech-structured-wrapper">
+                    <div class="speech-tabs" role="tablist">
+                      <button
+                        type="button"
+                        class="speech-tab active"
+                        data-target="tab-anamnese"
+                      >
+                        Anamnese
+                      </button>
+                      <button
+                        type="button"
+                        class="speech-tab"
+                        data-target="tab-befund"
+                      >
+                        Aktueller Befund / Status
+                      </button>
+                      <button
+                        type="button"
+                        class="speech-tab"
+                        data-target="tab-diagnose"
+                      >
+                        Diagnose (physio / ärztlich)
+                      </button>
+                      <button
+                        type="button"
+                        class="speech-tab"
+                        data-target="tab-therapieplan"
+                      >
+                        Therapievorschlag / Therapieplan
+                      </button>
+                      <button
+                        type="button"
+                        class="speech-tab"
+                        data-target="tab-verlauf"
+                      >
+                        Verlauf &amp; Dokumentation
+                      </button>
+                      <button
+                        type="button"
+                        class="speech-tab"
+                        data-target="tab-epikrise"
+                      >
+                        Epikrise / Empfehlung
+                      </button>
+                    </div>
 
-                  <div class="speech-tab-panels">
-                    <!-- Anamnese -->
-                    <div class="form-field speech-tab-panel active" id="speech-tab-anamnese">
-                      <div class="speech-panel-header">
-                        <div>
-                          <div class="speech-panel-title">Anamnese</div>
-                          <span class="field-hint">
-                            Vorgeschichte der Beschwerden, frühere Erkrankungen, bisherige Behandlungen, Fachärzte.
-                          </span>
-                        </div>
+                    <!-- Panels -->
+                    <div class="speech-tab-panels">
+                      <!-- Anamnese -->
+                      <section
+                        id="tab-anamnese"
+                        class="speech-tab-panel active"
+                        aria-label="Anamnese"
+                      >
+                        <h4>Anamnese</h4>
+                        <p class="speech-description">
+                          Vorgeschichte der Beschwerden, frühere Erkrankungen,
+                          bisherige Behandlungen, bereits besuchte Fachärzte
+                          etc.
+                        </p>
                         <button
                           type="button"
                           class="btn btn-secondary speech-record-btn"
                           data-target-textarea="speech-anamnese"
                         >
-                          🎙️ Aufnahme für diesen Bereich
+                          🎙️ Aufnahme für Anamnese wählen
                         </button>
-                      </div>
-                      <textarea
-                        id="speech-anamnese"
-                        rows="3"
-                        placeholder="Anamnese-Notizen oder Transkript"
-                      ></textarea>
-                    </div>
-
-                    <!-- Aktueller Befund / Status -->
-                    <div class="form-field speech-tab-panel" id="speech-tab-befund">
-                      <div class="speech-panel-header">
-                        <div>
-                          <div class="speech-panel-title">Aktueller Befund / Status</div>
-                          <span class="field-hint">
-                            Beschreibung der aktuellen Beschwerden, körperlichen Befunde, Beweglichkeit, Schmerzbild, Funktionsstörungen.
-                          </span>
+                        <div class="form-field" style="margin-top: 6px;">
+                          <label for="speech-anamnese">
+                            Anamnesenotizen
+                            <span class="field-hint">(Transkript &amp; Ergänzungen)</span>
+                          </label>
+                          <textarea
+                            id="speech-anamnese"
+                            rows="3"
+                            placeholder="Hier wird die Anamnese automatisch transkribiert – du kannst den Text jederzeit anpassen."
+                          ></textarea>
                         </div>
+                      </section>
+
+                      <!-- Aktueller Befund / Status -->
+                      <section
+                        id="tab-befund"
+                        class="speech-tab-panel"
+                        aria-label="Aktueller Befund / Status"
+                      >
+                        <h4>Aktueller Befund / Status</h4>
+                        <p class="speech-description">
+                          Beschreibung der aktuellen Beschwerden,
+                          körperlichen Befunde, Einschätzung von Beweglichkeit,
+                          Schmerzbildern und Funktionsstörungen (ggf. inkl.
+                          Bildgebung, ärztlichen Befunden).
+                        </p>
                         <button
                           type="button"
                           class="btn btn-secondary speech-record-btn"
                           data-target-textarea="speech-befund"
                         >
-                          🎙️ Aufnahme für diesen Bereich
+                          🎙️ Aufnahme für Befund wählen
                         </button>
-                      </div>
-                      <textarea
-                        id="speech-befund"
-                        rows="3"
-                        placeholder="Befund-Notizen oder Transkript"
-                      ></textarea>
-                    </div>
-
-                    <!-- Diagnose -->
-                    <div class="form-field speech-tab-panel" id="speech-tab-diagnose">
-                      <div class="speech-panel-header">
-                        <div>
-                          <div class="speech-panel-title">
-                            Diagnose (physiotherapeutisch / ärztlich)
-                          </div>
-                          <span class="field-hint">
-                            Physiotherapeutische Einschätzung in Anlehnung an die ärztliche ICD-10-Diagnose.
-                          </span>
+                        <div class="form-field" style="margin-top: 6px;">
+                          <label for="speech-befund">
+                            Befundnotizen
+                            <span class="field-hint">(Transkript &amp; Ergänzungen)</span>
+                          </label>
+                          <textarea
+                            id="speech-befund"
+                            rows="3"
+                            placeholder="Hier wird der aktuelle Befund transkribiert."
+                          ></textarea>
                         </div>
+                      </section>
+
+                      <!-- Diagnose -->
+                      <section
+                        id="tab-diagnose"
+                        class="speech-tab-panel"
+                        aria-label="Diagnose (physiotherapeutisch / ärztlich)"
+                      >
+                        <h4>Diagnose (physiotherapeutisch / ärztlich)</h4>
+                        <p class="speech-description">
+                          Ergänzung zur ärztlichen Diagnose aus physio­
+                          therapeutischer Sicht (Funktionsdiagnose, klinische
+                          Einschätzung, Prioritäten).
+                        </p>
                         <button
                           type="button"
                           class="btn btn-secondary speech-record-btn"
                           data-target-textarea="speech-diagnose"
                         >
-                          🎙️ Aufnahme für diesen Bereich
+                          🎙️ Aufnahme für Diagnose wählen
                         </button>
-                      </div>
-                      <textarea
-                        id="speech-diagnose"
-                        rows="3"
-                        placeholder="Diagnose / Einschätzung"
-                      ></textarea>
-                    </div>
-
-                    <!-- Therapievorschlag / Therapieplan -->
-                    <div class="form-field speech-tab-panel" id="speech-tab-therapieplan">
-                      <div class="speech-panel-header">
-                        <div>
-                          <div class="speech-panel-title">Therapievorschlag / Therapieplan</div>
-                          <span class="field-hint">
-                            Geplante therapeutische Maßnahmen (KG, MT, Übungen …), Häufigkeit, Ziele.
-                          </span>
+                        <div class="form-field" style="margin-top: 6px;">
+                          <label for="speech-diagnose">
+                            Diagnosenotizen
+                            <span class="field-hint">(Transkript &amp; Ergänzungen)</span>
+                          </label>
+                          <textarea
+                            id="speech-diagnose"
+                            rows="3"
+                            placeholder="Hier wird die physiotherapeutische Diagnose transkribiert."
+                          ></textarea>
                         </div>
+                      </section>
+
+                      <!-- Therapieplan -->
+                      <section
+                        id="tab-therapieplan"
+                        class="speech-tab-panel"
+                        aria-label="Therapievorschlag / Therapieplan"
+                      >
+                        <h4>Therapievorschlag / Therapieplan</h4>
+                        <p class="speech-description">
+                          Geplante therapeutische Maßnahmen (z. B.
+                          Krankengymnastik, manuelle Therapie,
+                          Bewegungsübungen), Frequenz, Dauer und übergeordnetes
+                          Ziel – nachvollziehbar für Weiterbehandler und
+                          Kostenträger.
+                        </p>
                         <button
                           type="button"
                           class="btn btn-secondary speech-record-btn"
                           data-target-textarea="speech-therapieplan"
                         >
-                          🎙️ Aufnahme für diesen Bereich
+                          🎙️ Aufnahme für Therapieplan wählen
                         </button>
-                      </div>
-                      <textarea
-                        id="speech-therapieplan"
-                        rows="3"
-                        placeholder="Therapieplan / geplante Maßnahmen"
-                      ></textarea>
-                    </div>
-
-                    <!-- Verlauf & Dokumentation -->
-                    <div class="form-field speech-tab-panel" id="speech-tab-verlauf">
-                      <div class="speech-panel-header">
-                        <div>
-                          <div class="speech-panel-title">
-                            Verlauf &amp; Dokumentation der durchgeführten Sitzungen / Therapien
-                          </div>
-                          <span class="field-hint">
-                            Was wurde gemacht, wie hat sich der Zustand verändert, Zwischenbefunde.
-                          </span>
+                        <div class="form-field" style="margin-top: 6px;">
+                          <label for="speech-therapieplan">
+                            Therapieplannotizen
+                            <span class="field-hint">(Transkript &amp; Ergänzungen)</span>
+                          </label>
+                          <textarea
+                            id="speech-therapieplan"
+                            rows="3"
+                            placeholder="Hier wird der Therapieplan transkribiert."
+                          ></textarea>
                         </div>
+                      </section>
+
+                      <!-- Verlauf & Dokumentation -->
+                      <section
+                        id="tab-verlauf"
+                        class="speech-tab-panel"
+                        aria-label="Verlauf und Dokumentation der durchgeführten Sitzungen / Therapien"
+                      >
+                        <h4>
+                          Verlauf und Dokumentation der durchgeführten
+                          Sitzungen / Therapien
+                        </h4>
+                        <p class="speech-description">
+                          Was wurde gemacht, wie hat sich der Zustand verändert,
+                          relevante Zwischenbefunde – wichtig für Fortführung
+                          oder Verlängerung der Verordnung.
+                        </p>
                         <button
                           type="button"
                           class="btn btn-secondary speech-record-btn"
                           data-target-textarea="speech-verlauf"
                         >
-                          🎙️ Aufnahme für diesen Bereich
+                          🎙️ Aufnahme für Verlauf wählen
                         </button>
-                      </div>
-                      <textarea
-                        id="speech-verlauf"
-                        rows="3"
-                        placeholder="Verlauf / Zwischenergebnisse"
-                      ></textarea>
-                    </div>
-
-                    <!-- Epikrise / Bewertung / Empfehlung -->
-                    <div class="form-field speech-tab-panel" id="speech-tab-epikrise">
-                      <div class="speech-panel-header">
-                        <div>
-                          <div class="speech-panel-title">
-                            Epikrise / Bewertung / Empfehlung
-                          </div>
-                          <span class="field-hint">
-                            Abschließende Beurteilung des bisherigen Verlaufs, Empfehlungen für weitere Maßnahmen.
-                          </span>
+                        <div class="form-field" style="margin-top: 6px;">
+                          <label for="speech-verlauf">
+                            Verlaufsnotizen
+                            <span class="field-hint">(Transkript &amp; Ergänzungen)</span>
+                          </label>
+                          <textarea
+                            id="speech-verlauf"
+                            rows="3"
+                            placeholder="Hier wird der Therapieverlauf transkribiert."
+                          ></textarea>
                         </div>
+                      </section>
+
+                      <!-- Epikrise / Bewertung / Empfehlung -->
+                      <section
+                        id="tab-epikrise"
+                        class="speech-tab-panel"
+                        aria-label="Epikrise / Bewertung / Empfehlung"
+                      >
+                        <h4>Epikrise / Bewertung / Empfehlung</h4>
+                        <p class="speech-description">
+                          Abschließende Beurteilung des bisherigen Verlaufs und
+                          Empfehlung für weitere therapeutische Maßnahmen oder
+                          ärztliche Rücksprache.
+                        </p>
                         <button
                           type="button"
                           class="btn btn-secondary speech-record-btn"
                           data-target-textarea="speech-epikrise"
                         >
-                          🎙️ Aufnahme für diesen Bereich
+                          🎙️ Aufnahme für Epikrise wählen
                         </button>
-                      </div>
-                      <textarea
-                        id="speech-epikrise"
-                        rows="3"
-                        placeholder="Epikrise / Bewertung / Empfehlung"
-                      ></textarea>
+                        <div class="form-field" style="margin-top: 6px;">
+                          <label for="speech-epikrise">
+                            Epikrisenotizen
+                            <span class="field-hint">(Transkript &amp; Ergänzungen)</span>
+                          </label>
+                          <textarea
+                            id="speech-epikrise"
+                            rows="3"
+                            placeholder="Hier wird die Epikrise / Empfehlung transkribiert."
+                          ></textarea>
+                        </div>
+                      </section>
                     </div>
                   </div>
+                </div>
 
-                  <!-- Gesamt-Transkript (Kompatibilität zu alter Logik) -->
+                <!-- Gesamt-Transkript (frei) -->
+                <div class="editor-row">
                   <div class="form-field">
                     <label for="speech-notes">
-                      Gesamt-Transkript / Stichworte
+                      Gesamt-Notizen / Roh-Transkript
                       <span class="field-hint">
-                        Optional: gesamter Text, falls du nur ein Feld nutzen möchtest.
+                        optional – freies Diktat außerhalb der einzelnen
+                        Bereiche
                       </span>
                     </label>
                     <textarea
                       id="speech-notes"
-                      rows="2"
-                      placeholder="Gesamtes Roh-Transkript, falls benötigt."
+                      rows="3"
+                      placeholder="Optionales Gesamt-Transkript, falls du ohne Struktur diktieren möchtest."
                     ></textarea>
                   </div>
                 </div>
 
-                <!-- Generierte Doku -->
+                <!-- Generierte Gesamtdoku -->
                 <div class="editor-row">
                   <div class="form-field">
                     <label for="session-note">
-                      Generierte Doku <span class="field-hint">(editierbar)</span>
+                      Generierte Gesamtdoku
+                      <span class="field-hint">
+                        wird aus allen Bereichen + Score erstellt, frei
+                        editierbar
+                      </span>
                     </label>
                     <textarea
                       id="session-note"
-                      rows="10"
+                      rows="9"
                       class="note-textarea"
                       placeholder="Klicke auf „Doku generieren“ – die Notiz kannst du anschließend anpassen."
                     ></textarea>
                   </div>
                 </div>
 
-                <!-- Footer -->
+                <!-- Footer: Score & Aktionen -->
                 <div class="editor-footer">
-                  <div class="score-block" aria-label="Beschwerde-Score">
+                  <div
+                    class="score-block"
+                    aria-label="Beschwerde-Score"
+                  >
                     <div class="score-label">Beschwerde-Score</div>
                     <div id="score-value" class="score-value">–</div>
                     <div id="score-category" class="score-category">
@@ -495,16 +638,32 @@
                     </div>
                   </div>
                   <div class="editor-actions">
-                    <button id="generate-note-btn" class="btn btn-secondary" type="button">
+                    <button
+                      id="generate-note-btn"
+                      class="btn btn-secondary"
+                      type="button"
+                    >
                       Doku generieren
                     </button>
-                    <button id="copy-note-btn" class="btn btn-secondary" type="button">
+                    <button
+                      id="copy-note-btn"
+                      class="btn btn-secondary"
+                      type="button"
+                    >
                       In Zwischenablage kopieren
                     </button>
-                    <button id="save-session-btn" class="btn btn-primary" type="button">
+                    <button
+                      id="save-session-btn"
+                      class="btn btn-primary"
+                      type="button"
+                    >
                       Sitzung speichern
                     </button>
-                    <button id="delete-session-btn" class="btn btn-danger" type="button">
+                    <button
+                      id="delete-session-btn"
+                      class="btn btn-danger"
+                      type="button"
+                    >
                       Sitzung löschen
                     </button>
                   </div>
@@ -524,7 +683,7 @@
     </footer>
   </div>
 
-  <!-- ICD-10 Daten (eigene Datei) + App-Logik -->
+  <!-- Scripts -->
   <script src="./icd10-codes.js" defer></script>
   <script src="./app.js" defer></script>
 </body>
