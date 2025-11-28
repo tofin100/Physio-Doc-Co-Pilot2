@@ -2,617 +2,835 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>Physio Doc Co-Pilot – Pilot</title>
+  <title>Physio Doc Co-Pilot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta
-    name="description"
-    content="Pilot einer browserbasierten Physio-Dokumentationshilfe: strukturierte Doku mit Sprachtranskription, alle Daten lokal im Browser."
-  />
-  <meta name="theme-color" content="#0b1020" />
+  <style>
+    :root {
+      --bg: #020617;
+      --bg-elevated: #020617;
+      --card: #020617;
+      --border: #1e293b;
+      --accent: #22d3ee;
+      --accent-soft: rgba(34, 211, 238, 0.12);
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --danger: #f97373;
+      --chip-bg: #020617;
+      --chip-active-bg: #0f172a;
+    }
 
-  <link rel="stylesheet" href="./styles.css" />
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      background: radial-gradient(circle at top, #0f172a 0, #020617 55%, #000 100%);
+      color: var(--text);
+    }
+
+    .app-shell {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 16px 48px;
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 2px 10px;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .pill-accent {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid rgba(34, 211, 238, 0.4);
+    }
+
+    .card {
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      background: radial-gradient(circle at top left,
+        rgba(148, 163, 184, 0.08),
+        rgba(15, 23, 42, 0.96) 40%);
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.6);
+      padding: 16px 18px;
+    }
+
+    .card + .card {
+      margin-top: 16px;
+    }
+
+    .meta {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* ---------------- Header & Layout ---------------- */
+
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .title {
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mic-indicator {
+      font-size: 12px;
+      border-radius: 999px;
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.85);
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #speech-status-indicator.active {
+      color: #bbf7d0;
+    }
+
+    /* ---------------- Patient-Bereich ---------------- */
+
+    .patient-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 900px) {
+      .patient-layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    label {
+      font-size: 12px;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    select,
+    textarea {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--text);
+      font-size: 13px;
+      padding: 8px 10px;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.35);
+    }
+
+    textarea {
+      resize: vertical;
+      line-height: 1.4;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .button {
+      border-radius: 999px;
+      border: none;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s ease-out;
+    }
+
+    .button-primary {
+      background: var(--accent);
+      color: #020617;
+      box-shadow: 0 8px 20px rgba(34, 211, 238, 0.35);
+    }
+
+    .button-primary:hover {
+      filter: brightness(1.08);
+      transform: translateY(-1px);
+    }
+
+    .button-ghost {
+      background: rgba(15, 23, 42, 0.8);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .button-ghost:hover {
+      background: rgba(15, 23, 42, 1);
+    }
+
+    .button-outline {
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    /* ---------------- Listen & Chips ---------------- */
+
+    #patient-list,
+    #session-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.85);
+      max-height: 260px;
+      overflow-y: auto;
+    }
+
+    #patient-list li,
+    #session-list li {
+      padding: 6px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    #patient-list li:not(:last-child),
+    #session-list li:not(:last-child) {
+      border-bottom: 1px solid rgba(30, 41, 59, 0.85);
+    }
+
+    #patient-list li.active,
+    #session-list li.active {
+      background: rgba(34, 211, 238, 0.1);
+      border-left: 3px solid var(--accent);
+    }
+
+    .chip {
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 11px;
+      border: 1px solid var(--border);
+      background: var(--chip-bg);
+      color: var(--muted);
+      cursor: pointer;
+      margin: 2px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .chip.active {
+      background: var(--chip-active-bg);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* ---------------- Slider ---------------- */
+
+    .slider-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .slider-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    input[type="range"] {
+      accent-color: var(--accent);
+    }
+
+    /* ---------------- Tabs für Doku-Bereiche ---------------- */
+
+    .tabs-wrapper {
+      margin-top: 8px;
+    }
+
+    .tab-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .tab-label {
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: rgba(15, 23, 42, 0.9);
+      user-select: none;
+    }
+
+    .tab-label.active {
+      background: var(--accent);
+      color: #020617;
+      border-color: var(--accent);
+      box-shadow: 0 10px 24px rgba(34, 211, 238, 0.4);
+    }
+
+    .tab-panels {
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: radial-gradient(circle at top left,
+        rgba(148, 163, 184, 0.08),
+        rgba(15, 23, 42, 0.97) 40%);
+      padding: 12px 14px;
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    .tab-panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .speech-record-btn {
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12px;
+      border: 1px solid rgba(34, 211, 238, 0.6);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--accent);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .speech-record-btn.active {
+      background: rgba(34, 197, 94, 0.12);
+      border-color: #22c55e;
+      color: #bbf7d0;
+    }
+
+    .big-textarea {
+      min-height: 700px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    /* ---------------- ICD Vorschläge ---------------- */
+
+    #patient-icd-suggestions {
+      position: relative;
+      margin-top: 4px;
+      font-size: 12px;
+    }
+
+    .icd-suggestion-item {
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      margin-top: 2px;
+    }
+
+    .icd-suggestion-item:hover {
+      border-color: var(--accent);
+    }
+
+    /* ---------------- Score-Box & Buttons unten ---------------- */
+
+    .session-footer-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .score-box {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .score-value {
+      font-size: 20px;
+      font-weight: 600;
+      margin-right: 4px;
+    }
+
+    .session-footer-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: flex-end;
+    }
+
+    #score-chart {
+      width: 100%;
+      max-width: 100%;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    /* ---------------- Info-Placeholder ---------------- */
+
+    #no-patient-selected,
+    #no-session-selected {
+      font-size: 13px;
+      color: var(--muted);
+      padding: 12px 10px;
+      border-radius: 10px;
+      border: 1px dashed var(--border);
+      background: rgba(15, 23, 42, 0.7);
+    }
+  </style>
 </head>
 <body>
-  <div class="app-root">
-    <!-- Header -->
-    <header class="app-header">
-      <div class="app-header-left">
-        <h1 class="app-title">
-          Physio Doc Co-Pilot
-          <span class="app-badge">Pilot</span>
-        </h1>
-        <p class="app-subtitle">
-          Patient anlegen, ICD-10 wählen, Abschnitte diktieren – alle Daten bleiben lokal im Browser.
+  <div class="app-shell">
+    <!-- Header + Willkommen -->
+    <div class="card">
+      <div class="header-row">
+        <div>
+          <div class="pill pill-accent">Pilot</div>
+          <div class="title">
+            Physio Doc Co-Pilot
+          </div>
+        </div>
+        <div class="mic-indicator">
+          🎤 <span id="speech-status-indicator">Mikrofon bereit</span>
+        </div>
+      </div>
+      <div>
+        <h2 style="font-size:18px; font-weight:600; margin-bottom:4px;">Willkommen 👋</h2>
+        <p class="meta">
+          Lege unten einen Patienten an oder wähle einen bestehenden – wir starten automatisch mit einem Erstbefund
+          und heutigem Datum. Alle Daten bleiben ausschließlich lokal in deinem Browser.
         </p>
       </div>
-      <div class="app-header-right">
-        <span
-          id="speech-status-indicator"
-          class="status-indicator"
-          aria-live="polite"
-        >
-          Mikrofon nicht aktiv
-        </span>
-      </div>
-    </header>
+    </div>
 
-    <!-- Main -->
-    <main class="app-main" aria-label="Physio Doc Co-Pilot Oberfläche">
-      <!-- Sidebar -->
-      <aside class="sidebar" aria-label="Patientenverwaltung">
-        <section class="panel panel-patients">
-          <header class="panel-header">
-            <h2 class="panel-title">Patienten</h2>
-          </header>
-
-          <!-- Liste der Patienten -->
-          <ul
-            id="patient-list"
-            class="list patient-list"
-            aria-label="Patientenliste"
-          >
-            <!-- per JS -->
-          </ul>
-
-          <div class="panel-divider" role="separator" aria-hidden="true"></div>
-
-          <!-- Neuer Patient -->
-          <section
-            class="new-patient-section"
-            aria-label="Neuen Patienten anlegen"
-          >
-            <h3 class="panel-subtitle">Neuer Patient</h3>
-
-            <form
-              id="new-patient-form"
-              class="form form-vertical"
-              autocomplete="off"
-            >
-              <div class="form-field">
-                <label for="patient-name-input">
-                  Name <span class="field-hint">(Pflichtfeld)</span>
-                </label>
-                <input
-                  type="text"
-                  id="patient-name-input"
-                  required
-                  placeholder="z. B. Max Mustermann"
-                />
+    <!-- Patienten- & Sitzungsbereich -->
+    <div class="card" style="margin-top:16px;">
+      <div class="patient-layout">
+        <!-- Neuer Patient -->
+        <div>
+          <h3 class="section-title">Neuen Patienten anlegen</h3>
+          <form id="new-patient-form">
+            <div style="margin-bottom:8px;">
+              <label for="patient-name-input">Name *</label>
+              <input id="patient-name-input" type="text" placeholder="Max Muster" />
+            </div>
+            <div class="input-row" style="margin-bottom:8px;">
+              <div style="flex:0 0 90px;">
+                <label for="patient-year-input">Geb.-Jahr</label>
+                <input id="patient-year-input" type="number" placeholder="1980" />
               </div>
-
-              <div class="form-field form-field-inline">
-                <div>
-                  <label for="patient-year-input">
-                    Geburtsjahr <span class="field-hint">(optional)</span>
-                  </label>
-                  <input
-                    type="number"
-                    id="patient-year-input"
-                    min="1900"
-                    max="2100"
-                    inputmode="numeric"
-                    placeholder="1985"
-                  />
-                </div>
-              </div>
-
-              <!-- ICD-10: bleibt vorbereitet, auch wenn wir uns gerade auf die Transkription konzentrieren -->
-              <div class="form-field">
-                <label for="patient-icd-input">
-                  ICD-10 Hauptdiagnose
-                  <span class="field-hint">(Code oder Text, optional im Pilot)</span>
-                </label>
-                <input
-                  type="text"
-                  id="patient-icd-input"
-                  placeholder="z. B. M54.5 Lumbalgie"
-                />
-                <div
-                  id="patient-icd-suggestions"
-                  class="icd-suggestions-panel"
-                  aria-label="ICD-10 Vorschläge"
-                >
-                  <!-- per JS -->
-                </div>
-              </div>
-
-              <div class="form-field">
-                <span class="field-hint">Ausgewählte Diagnose</span>
-                <div
-                  id="patient-icd-selected"
-                  class="icd-selected-display"
-                >
+              <div style="flex:1;">
+                <label for="patient-icd-input">ICD-10 (optional)</label>
+                <input id="patient-icd-input" type="text" placeholder="z. B. M54.5 Lumbago" />
+                <div id="patient-icd-suggestions"></div>
+                <div id="patient-icd-selected" class="meta" style="margin-top:4px;">
                   Noch keine Diagnose ausgewählt.
                 </div>
               </div>
-
-              <button type="submit" class="btn btn-primary btn-full">
-                Schnell anlegen &amp; Erstbefund starten
-              </button>
-            </form>
-          </section>
-        </section>
-      </aside>
-
-      <!-- Hauptbereich -->
-      <section class="main-content">
-        <!-- Kein Patient ausgewählt -->
-        <section
-          id="no-patient-selected"
-          class="empty-state"
-          aria-live="polite"
-        >
-          <h2 class="empty-title">Willkommen 👋</h2>
-          <p class="empty-text">
-            Lege links einen Patienten an – wir starten automatisch mit einem
-            Erstbefund mit heutigem Datum.
-          </p>
-          <p class="empty-text secondary">
-            Dies ist eine Pilotversion: alle Daten werden ausschließlich lokal
-            in deinem Browser gespeichert.
-          </p>
-        </section>
-
-        <!-- Patient ausgewählt -->
-        <section
-          id="patient-detail"
-          class="patient-detail hidden"
-          aria-live="polite"
-          aria-label="Details zum ausgewählten Patienten"
-        >
-          <!-- Kopf -->
-          <header class="panel patient-header">
-            <div class="patient-header-info">
-              <h2 id="patient-title" class="patient-name"></h2>
-              <p id="patient-meta" class="patient-meta"></p>
             </div>
-            <div class="patient-header-actions">
-              <button
-                id="add-session-btn"
-                class="btn btn-secondary"
-                type="button"
-              >
+            <button type="submit" class="button button-primary">
+              + Patient anlegen & Erstbefund starten
+            </button>
+          </form>
+        </div>
+
+        <!-- Patientenliste & Sitzungen -->
+        <div>
+          <h3 class="section-title">Patienten & Sitzungen</h3>
+
+          <div class="meta" id="no-patient-selected">
+            Noch kein Patient ausgewählt. Lege links einen Patienten an oder wähle einen in der Liste.
+          </div>
+
+          <div id="patient-detail" class="hidden">
+            <div style="margin-bottom:8px;">
+              <div id="patient-title" style="font-weight:600; font-size:14px;">Patient</div>
+              <div id="patient-meta" class="meta">Keine Zusatzinfos</div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <span class="meta">Sitzungen & Verlauf</span>
+              <button id="add-session-btn" type="button" class="button-ghost button" style="padding:6px 10px;">
                 + Folgetermin
               </button>
             </div>
-          </header>
 
-          <!-- Layout -->
-          <div class="patient-layout">
-            <!-- Verlauf -->
-            <section class="panel sessions-panel" aria-label="Sitzungen & Verlauf">
-              <header class="panel-header">
-                <h3 class="panel-title">Sitzungen & Verlauf</h3>
-              </header>
+            <ul id="session-list"></ul>
 
-              <ul
-                id="session-list"
-                class="list session-list"
-                aria-label="Liste der Sitzungen"
-              >
-                <!-- per JS -->
-              </ul>
-
-              <div class="score-chart-wrapper">
-                <canvas
-                  id="score-chart"
-                  class="score-chart"
-                  width="400"
-                  height="200"
-                  aria-label="Verlauf des Beschwerde-Scores"
-                  role="img"
-                >
-                  Dein Browser unterstützt kein Canvas – Score-Verlauf nicht
-                  verfügbar.
-                </canvas>
-              </div>
-            </section>
-
-            <!-- Editor -->
-            <section class="panel editor-panel" aria-label="Sitzung dokumentieren">
-              <!-- Kein Termin -->
-              <div id="no-session-selected" class="empty-state small">
-                <p class="empty-text">
-                  Noch keine Sitzung ausgewählt. Lege links einen Patienten an –
-                  wir starten automatisch mit einer Erstbefund-Sitzung.
-                </p>
-              </div>
-
-              <!-- Editor -->
-              <div id="session-editor" class="session-editor hidden">
-                <!-- Leitlinie oben -->
-                <div class="editor-steps">
-                  <span class="step-badge">1</span> Beschwerden &amp; Maßnahmen
-                  wählen
-                  <span class="step-separator">→</span>
-                  <span class="step-badge">2</span> Bereiche diktieren
-                  <span class="step-separator">→</span>
-                  <span class="step-badge">3</span> Gesamtdoku generieren &amp;
-                  kopieren
-                </div>
-
-                <!-- Basisinfos -->
-                <div class="editor-row editor-row-inline">
-                  <div class="form-field">
-                    <label for="session-type">Sitzungstyp</label>
-                    <select id="session-type">
-                      <option value="initial">Erstbefund</option>
-                      <option value="followup">Folgetermin</option>
-                    </select>
-                  </div>
-
-                  <div class="form-field">
-                    <label for="session-date">Datum</label>
-                    <input type="date" id="session-date" />
-                  </div>
-                </div>
-
-                <!-- Beschwerden -->
-                <div class="editor-row">
-                  <div class="chip-group">
-                    <div class="chip-group-header">
-                      <span class="chip-group-title">Beschwerden (Kurzfassung)</span>
-                      <span class="chip-group-hint">Mehrfachauswahl möglich</span>
-                    </div>
-                    <div id="complaint-chips" class="chips"></div>
-                  </div>
-                </div>
-
-                <!-- Maßnahmen -->
-                <div class="editor-row">
-                  <div class="chip-group">
-                    <div class="chip-group-header">
-                      <span class="chip-group-title">Maßnahmen (heutige Behandlung)</span>
-                      <span class="chip-group-hint">für Score &amp; Kurzplan</span>
-                    </div>
-                    <div id="measure-chips" class="chips"></div>
-                  </div>
-                </div>
-
-                <!-- Skalen -->
-                <div class="editor-row sliders-row">
-                  <div class="slider-block">
-                    <label for="pain-slider">
-                      Schmerz (0 = kein, 10 = maximal)
-                    </label>
-                    <div class="slider-value-row">
-                      <input
-                        type="range"
-                        id="pain-slider"
-                        min="0"
-                        max="10"
-                        step="1"
-                        value="5"
-                      />
-                      <span
-                        id="pain-value"
-                        class="slider-value"
-                        aria-live="polite"
-                      >
-                        5
-                      </span>
-                    </div>
-                  </div>
-
-                  <div class="slider-block">
-                    <label for="function-slider">
-                      Alltags­einschränkung (0 = keine, 10 = maximal)
-                    </label>
-                    <div class="slider-value-row">
-                      <input
-                        type="range"
-                        id="function-slider"
-                        min="0"
-                        max="10"
-                        step="1"
-                        value="5"
-                      />
-                      <span
-                        id="function-value"
-                        class="slider-value"
-                        aria-live="polite"
-                      >
-                        5
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- AB HIER: alle Bereiche mit eigenem Transkriptions-Button -->
-
-                <!-- Anamnese -->
-                <div class="editor-row speech-section">
-                  <h4>Anamnese</h4>
-                  <p class="speech-description">
-                    Vorgeschichte der Beschwerden, frühere Erkrankungen,
-                    bisherige Behandlungen, bereits besuchte Fachärzte etc.
-                  </p>
-                  <p>
-                    <button
-                      type="button"
-                      class="btn btn-secondary speech-record-btn"
-                      data-target-textarea="speech-anamnese"
-                    >
-                      🎙️ Transkription für Anamnese starten / stoppen
-                    </button>
-                  </p>
-                  <div class="form-field">
-                    <label for="speech-anamnese">
-                      Anamnesenotizen
-                      <span class="field-hint">(Transkript &amp; Ergänzungen)</span>
-                    </label>
-                    <textarea
-                      id="speech-anamnese"
-                      rows="3"
-                      placeholder="Hier wird die Anamnese automatisch transkribiert – du kannst den Text jederzeit anpassen."
-                    ></textarea>
-                  </div>
-                </div>
-
-                <!-- Aktueller Befund / Status -->
-                <div class="editor-row speech-section">
-                  <h4>Aktueller Befund / Status</h4>
-                  <p class="speech-description">
-                    Beschreibung der aktuellen Beschwerden, körperlichen Befunde,
-                    Einschätzung von Beweglichkeit, Schmerzbildern und
-                    Funktionsstörungen (je nach Relevanz inkl. Bildgebung und
-                    ärztlichen Befunden).
-                  </p>
-                  <p>
-                    <button
-                      type="button"
-                      class="btn btn-secondary speech-record-btn"
-                      data-target-textarea="speech-befund"
-                    >
-                      🎙️ Transkription für Befund starten / stoppen
-                    </button>
-                  </p>
-                  <div class="form-field">
-                    <label for="speech-befund">
-                      Befundnotizen
-                      <span class="field-hint">(Transkript &amp; Ergänzungen)</span>
-                    </label>
-                    <textarea
-                      id="speech-befund"
-                      rows="3"
-                      placeholder="Hier wird der aktuelle Befund transkribiert."
-                    ></textarea>
-                  </div>
-                </div>
-
-                <!-- Diagnose -->
-                <div class="editor-row speech-section">
-                  <h4>Diagnose (physiotherapeutisch / ärztlich)</h4>
-                  <p class="speech-description">
-                    In Anlehnung an die ärztliche Diagnose, ergänzt durch die
-                    physiotherapeutische Funktionsdiagnose und klinische
-                    Einschätzung.
-                  </p>
-                  <p>
-                    <button
-                      type="button"
-                      class="btn btn-secondary speech-record-btn"
-                      data-target-textarea="speech-diagnose"
-                    >
-                      🎙️ Transkription für Diagnose starten / stoppen
-                    </button>
-                  </p>
-                  <div class="form-field">
-                    <label for="speech-diagnose">
-                      Diagnosenotizen
-                      <span class="field-hint">(Transkript &amp; Ergänzungen)</span>
-                    </label>
-                    <textarea
-                      id="speech-diagnose"
-                      rows="3"
-                      placeholder="Hier wird die physiotherapeutische Diagnose transkribiert."
-                    ></textarea>
-                  </div>
-                </div>
-
-                <!-- Therapievorschlag / Therapieplan -->
-                <div class="editor-row speech-section">
-                  <h4>Therapievorschlag / Therapieplan</h4>
-                  <p class="speech-description">
-                    Welche therapeutischen Maßnahmen sind vorgesehen
-                    (z. B. Krankengymnastik, manuelle Therapie,
-                    Bewegungsübungen), wie oft, mit welchem Ziel – strukturiert
-                    und nachvollziehbar, auch gegenüber der Kasse.
-                  </p>
-                  <p>
-                    <button
-                      type="button"
-                      class="btn btn-secondary speech-record-btn"
-                      data-target-textarea="speech-therapieplan"
-                    >
-                      🎙️ Transkription für Therapieplan starten / stoppen
-                    </button>
-                  </p>
-                  <div class="form-field">
-                    <label for="speech-therapieplan">
-                      Therapieplannotizen
-                      <span class="field-hint">(Transkript &amp; Ergänzungen)</span>
-                    </label>
-                    <textarea
-                      id="speech-therapieplan"
-                      rows="3"
-                      placeholder="Hier wird der Therapieplan transkribiert."
-                    ></textarea>
-                  </div>
-                </div>
-
-                <!-- Verlauf & Dokumentation -->
-                <div class="editor-row speech-section">
-                  <h4>Verlauf und Dokumentation der durchgeführten Sitzungen / Therapien</h4>
-                  <p class="speech-description">
-                    Was wurde gemacht, wie hat sich der Zustand verändert,
-                    relevante Zwischenbefunde – wichtig für die Fortführung der
-                    Therapie oder eine Verlängerung der Verordnung.
-                  </p>
-                  <p>
-                    <button
-                      type="button"
-                      class="btn btn-secondary speech-record-btn"
-                      data-target-textarea="speech-verlauf"
-                    >
-                      🎙️ Transkription für Verlauf starten / stoppen
-                    </button>
-                  </p>
-                  <div class="form-field">
-                    <label for="speech-verlauf">
-                      Verlaufsnotizen
-                      <span class="field-hint">(Transkript &amp; Ergänzungen)</span>
-                    </label>
-                    <textarea
-                      id="speech-verlauf"
-                      rows="3"
-                      placeholder="Hier wird der Therapieverlauf transkribiert."
-                    ></textarea>
-                  </div>
-                </div>
-
-                <!-- Epikrise / Bewertung / Empfehlung -->
-                <div class="editor-row speech-section">
-                  <h4>Epikrise / Bewertung / Empfehlung</h4>
-                  <p class="speech-description">
-                    Abschließende Beurteilung des bisherigen Verlaufs sowie
-                    Empfehlung für weitere therapeutische Maßnahmen oder
-                    ärztliche Rücksprache.
-                  </p>
-                  <p>
-                    <button
-                      type="button"
-                      class="btn btn-secondary speech-record-btn"
-                      data-target-textarea="speech-epikrise"
-                    >
-                      🎙️ Transkription für Epikrise starten / stoppen
-                    </button>
-                  </p>
-                  <div class="form-field">
-                    <label for="speech-epikrise">
-                      Epikrisenotizen
-                      <span class="field-hint">(Transkript &amp; Ergänzungen)</span>
-                    </label>
-                    <textarea
-                      id="speech-epikrise"
-                      rows="3"
-                      placeholder="Hier wird die Epikrise / Empfehlung transkribiert."
-                    ></textarea>
-                  </div>
-                </div>
-
-                <!-- Gesamt-Notizen / Roh-Transkript -->
-                <div class="editor-row speech-section">
-                  <h4>Gesamt-Notizen / Roh-Transkript</h4>
-                  <p class="speech-description">
-                    Optionaler freier Bereich für Notizen, die nicht in die
-                    einzelnen Abschnitte passen (z. B. Gesprächsdetails,
-                    organisatorische Infos).
-                  </p>
-                  <p>
-                    <button
-                      type="button"
-                      class="btn btn-secondary speech-record-btn"
-                      data-target-textarea="speech-notes"
-                    >
-                      🎙️ Transkription für Gesamt-Notizen starten / stoppen
-                    </button>
-                  </p>
-                  <div class="form-field">
-                    <label for="speech-notes">
-                      Gesamt-Notizen
-                      <span class="field-hint">
-                        freies Transkript, kann in die Gesamtdoku übernommen werden
-                      </span>
-                    </label>
-                    <textarea
-                      id="speech-notes"
-                      rows="3"
-                      placeholder="Hier wird das freie Gesamt-Transkript erfasst."
-                    ></textarea>
-                  </div>
-                </div>
-
-                <!-- Generierte Gesamtdoku -->
-                <div class="editor-row">
-                  <div class="form-field">
-                    <label for="session-note">
-                      Generierte Gesamtdoku
-                      <span class="field-hint">
-                        wird aus allen Bereichen + Score erstellt, frei
-                        editierbar
-                      </span>
-                    </label>
-                    <textarea
-                      id="session-note"
-                      rows="9"
-                      class="note-textarea"
-                      placeholder="Klicke auf „Doku generieren“ – die Notiz kannst du anschließend anpassen."
-                    ></textarea>
-                  </div>
-                </div>
-
-                <!-- Footer: Score & Aktionen -->
-                <div class="editor-footer">
-                  <div
-                    class="score-block"
-                    aria-label="Beschwerde-Score"
-                  >
-                    <div class="score-label">Beschwerde-Score</div>
-                    <div id="score-value" class="score-value">–</div>
-                    <div id="score-category" class="score-category">
-                      Noch nicht berechnet
-                    </div>
-                  </div>
-                  <div class="editor-actions">
-                    <button
-                      id="generate-note-btn"
-                      class="btn btn-secondary"
-                      type="button"
-                    >
-                      Doku generieren
-                    </button>
-                    <button
-                      id="copy-note-btn"
-                      class="btn btn-secondary"
-                      type="button"
-                    >
-                      In Zwischenablage kopieren
-                    </button>
-                    <button
-                      id="save-session-btn"
-                      class="btn btn-primary"
-                      type="button"
-                    >
-                      Sitzung speichern
-                    </button>
-                    <button
-                      id="delete-session-btn"
-                      class="btn btn-danger"
-                      type="button"
-                    >
-                      Sitzung löschen
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </section>
+            <div style="margin-top:10px;">
+              <span class="meta">Beschwerde-Score Verlauf</span>
+              <canvas id="score-chart" width="420" height="160"></canvas>
+            </div>
           </div>
-        </section>
-      </section>
-    </main>
+        </div>
+      </div>
+    </div>
 
-    <!-- Footer -->
-    <footer class="app-footer">
-      <p class="footer-text">
-        Physio Doc Co-Pilot · Pilotversion · alle Daten bleiben lokal im Browser.
-      </p>
-    </footer>
+    <!-- Sitzungs-Editor: komplett über ganze Breite -->
+    <div class="card" style="margin-top:16px;">
+      <h3 class="section-title">Aktuelle Sitzung</h3>
+
+      <div id="no-session-selected" class="meta">
+        Kein Sitzungseintrag ausgewählt. Wähle oben eine Sitzung oder lege eine neue an.
+      </div>
+
+      <div id="session-editor" class="hidden">
+        <!-- Sitzungskopf -->
+        <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; margin-bottom:10px;">
+          <div>
+            <label for="session-type">Sitzungstyp</label>
+            <select id="session-type">
+              <option value="initial">Erstbefund</option>
+              <option value="followup">Folgetermin</option>
+            </select>
+          </div>
+          <div>
+            <label for="session-date">Datum</label>
+            <input id="session-date" type="date" />
+          </div>
+        </div>
+
+        <!-- Beschwerden / Maßnahmen / Slider -->
+        <div style="margin-bottom:12px;">
+          <label>Beschwerden</label>
+          <div id="complaint-chips"></div>
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label>Maßnahmen (heute)</label>
+          <div id="measure-chips"></div>
+        </div>
+
+        <div class="slider-row" style="margin-bottom:16px;">
+          <div class="slider-group">
+            <span>Schmerz:</span>
+            <input id="pain-slider" type="range" min="0" max="10" />
+            <span><strong id="pain-value">5</strong>/10</span>
+          </div>
+          <div class="slider-group">
+            <span>Alltags­einschränkung:</span>
+            <input id="function-slider" type="range" min="0" max="10" />
+            <span><strong id="function-value">5</strong>/10</span>
+          </div>
+        </div>
+
+        <!-- Tabs für strukturierte Bereiche -->
+        <div class="tabs-wrapper">
+          <!-- Tab-Buttons -->
+          <div class="tab-buttons" id="tab-buttons">
+            <button type="button" class="tab-label active" data-tab="anamnese">Anamnese</button>
+            <button type="button" class="tab-label" data-tab="befund">Befund</button>
+            <button type="button" class="tab-label" data-tab="diagnose">Diagnose / Assessment</button>
+            <button type="button" class="tab-label" data-tab="therapieplan">Therapieplan</button>
+            <button type="button" class="tab-label" data-tab="verlauf">Verlauf</button>
+            <button type="button" class="tab-label" data-tab="epikrise">Epikrise</button>
+            <button type="button" class="tab-label" data-tab="notes">Zusatznotizen</button>
+          </div>
+
+          <!-- Panels -->
+          <div class="tab-panels" id="tab-panels">
+            <!-- Anamnese -->
+            <div class="tab-panel active" data-panel="anamnese">
+              <div class="tab-panel-header">
+                <div>
+                  <strong style="font-size:13px;">Anamnese</strong>
+                  <div class="meta">
+                    Vorgeschichte, bisherige Behandlungen, relevante Vorerkrankungen, Beruf, Alltag.
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  class="speech-record-btn"
+                  data-target-textarea="speech-anamnese"
+                >
+                  🎙️ Aufnahme Anamnese
+                </button>
+              </div>
+              <textarea
+                id="speech-anamnese"
+                class="big-textarea"
+                placeholder="Hier wird die Anamnese transkribiert…"
+              ></textarea>
+            </div>
+
+            <!-- Befund -->
+            <div class="tab-panel" data-panel="befund">
+              <div class="tab-panel-header">
+                <div>
+                  <strong style="font-size:13px;">Aktueller Befund / Status</strong>
+                  <div class="meta">
+                    Befunde zu Schmerz, Beweglichkeit, Kraft, Funktion, Tests etc.
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  class="speech-record-btn"
+                  data-target-textarea="speech-befund"
+                >
+                  🎙️ Aufnahme Befund
+                </button>
+              </div>
+              <textarea
+                id="speech-befund"
+                class="big-textarea"
+                placeholder="Hier wird der aktuelle Befund transkribiert…"
+              ></textarea>
+            </div>
+
+            <!-- Diagnose -->
+            <div class="tab-panel" data-panel="diagnose">
+              <div class="tab-panel-header">
+                <div>
+                  <strong style="font-size:13px;">Diagnose / physiotherapeutische Einschätzung</strong>
+                  <div class="meta">
+                    Funktionsdiagnose, Hypothesen, therapeutische Einschätzung.
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  class="speech-record-btn"
+                  data-target-textarea="speech-diagnose"
+                >
+                  🎙️ Aufnahme Diagnose
+                </button>
+              </div>
+              <textarea
+                id="speech-diagnose"
+                class="big-textarea"
+                placeholder="Hier wird die physiotherapeutische Diagnose / Einschätzung transkribiert…"
+              ></textarea>
+            </div>
+
+            <!-- Therapieplan -->
+            <div class="tab-panel" data-panel="therapieplan">
+              <div class="tab-panel-header">
+                <div>
+                  <strong style="font-size:13px;">Therapieplan</strong>
+                  <div class="meta">
+                    Geplante Maßnahmen, Frequenz, Dauer, Heimübungen, Prioritäten.
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  class="speech-record-btn"
+                  data-target-textarea="speech-therapieplan"
+                >
+                  🎙️ Aufnahme Therapieplan
+                </button>
+              </div>
+              <textarea
+                id="speech-therapieplan"
+                class="big-textarea"
+                placeholder="Hier wird der Therapieplan transkribiert…"
+              ></textarea>
+            </div>
+
+            <!-- Verlauf -->
+            <div class="tab-panel" data-panel="verlauf">
+              <div class="tab-panel-header">
+                <div>
+                  <strong style="font-size:13px;">Verlauf & Reaktion auf die Therapie</strong>
+                  <div class="meta">
+                    Reaktionen, Veränderungen, Anpassungen zwischen den Sitzungen.
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  class="speech-record-btn"
+                  data-target-textarea="speech-verlauf"
+                >
+                  🎙️ Aufnahme Verlauf
+                </button>
+              </div>
+              <textarea
+                id="speech-verlauf"
+                class="big-textarea"
+                placeholder="Hier wird der Verlauf transkribiert…"
+              ></textarea>
+            </div>
+
+            <!-- Epikrise -->
+            <div class="tab-panel" data-panel="epikrise">
+              <div class="tab-panel-header">
+                <div>
+                  <strong style="font-size:13px;">Epikrise / Empfehlung</strong>
+                  <div class="meta">
+                    Zusammenfassung, Bewertung, Empfehlung für weiteres Vorgehen.
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  class="speech-record-btn"
+                  data-target-textarea="speech-epikrise"
+                >
+                  🎙️ Aufnahme Epikrise
+                </button>
+              </div>
+              <textarea
+                id="speech-epikrise"
+                class="big-textarea"
+                placeholder="Hier wird die Epikrise transkribiert…"
+              ></textarea>
+            </div>
+
+            <!-- Zusatznotizen -->
+            <div class="tab-panel" data-panel="notes">
+              <div class="tab-panel-header">
+                <div>
+                  <strong style="font-size:13px;">Zusätzliche Notizen</strong>
+                  <div class="meta">
+                    Sonstige Hinweise, Besonderheiten, Kommunikation mit Ärzt:innen etc.
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  class="speech-record-btn"
+                  data-target-textarea="speech-notes"
+                >
+                  🎙️ Aufnahme Zusatznotizen
+                </button>
+              </div>
+              <textarea
+                id="speech-notes"
+                class="big-textarea"
+                placeholder="Hier können zusätzliche Notizen transkribiert werden…"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gesamtbericht unten -->
+        <div style="margin-top:18px;">
+          <label for="session-note">Gesamtdokumentation (generiert)</label>
+          <textarea
+            id="session-note"
+            class="big-textarea"
+            placeholder="Hier erscheint die strukturierte Gesamtdokumentation nach Klick auf &quot;Doku generieren&quot; – du kannst sie bei Bedarf noch anpassen."
+          ></textarea>
+        </div>
+
+        <!-- Footer Buttons + Score -->
+        <div class="session-footer-row">
+          <div class="score-box">
+            <div>
+              Score: <span id="score-value" class="score-value">–</span>/100
+            </div>
+            <div id="score-category">Noch nicht berechnet</div>
+          </div>
+          <div class="session-footer-buttons">
+            <button id="generate-note-btn" type="button" class="button button-ghost">
+              🧠 Doku generieren &amp; Score berechnen
+            </button>
+            <button id="copy-note-btn" type="button" class="button button-ghost">
+              📋 In Zwischenablage kopieren
+            </button>
+            <button id="save-session-btn" type="button" class="button button-primary">
+              💾 Sitzung speichern
+            </button>
+            <button id="delete-session-btn" type="button" class="button button-ghost" style="color:#fca5a5; border-color:#4b5563;">
+              🗑️ Sitzung löschen
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- Scripts -->
-  <script src="./icd10-codes.js" defer></script>
-  <script src="./app.js" defer></script>
+  <!-- ICD-10 Codes (optional) -->
+  <!-- <script src="icd10-codes.js"></script> -->
+  <script src="app.js"></script>
+
+  <script>
+    // Simple Tabs-Logik für die Doku-Bereiche (Layout-only, unabhängig von app.js)
+    document.addEventListener("DOMContentLoaded", () => {
+      const tabButtons = document.querySelectorAll(".tab-label");
+      const tabPanels = document.querySelectorAll(".tab-panel");
+
+      tabButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const target = btn.dataset.tab;
+
+          tabButtons.forEach((b) => b.classList.remove("active"));
+          tabPanels.forEach((p) => p.classList.remove("active"));
+
+          btn.classList.add("active");
+          const panel = document.querySelector(`.tab-panel[data-panel="${target}"]`);
+          if (panel) panel.classList.add("active");
+        });
+      });
+    });
+  </script>
 </body>
 </html>
