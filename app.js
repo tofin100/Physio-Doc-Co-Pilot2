@@ -1,7 +1,7 @@
 // app.js – Physio Doc Co-Pilot Pilot
-// Fokus: Patient extrem schnell anlegen, ICD-10 erfassen, sofort Erstbefund starten
+// Fokus: ICD-10 (separate Datei), strukturierte Transkripte pro Reiter, alles lokal im Browser
 
-const STORAGE_KEY = "physioDocPilot_v3";
+const STORAGE_KEY = "physioDocPilot_v5";
 
 let state = {
   patients: [],
@@ -29,97 +29,37 @@ const MEASURE_OPTIONS = [
   { id: "device", label: "Gerätetraining" }
 ];
 
-// Fokussierte, physio-relevante ICD-10-Liste für die Vorschläge
-const ICD_OPTIONS = [
-  // Wirbelsäule / Rücken
-  { code: "M54.5", label: "Kreuzschmerz" },
-  { code: "M54.4", label: "Lumbago mit Ischias" },
-  { code: "M54.2", label: "Zervikalsyndrom" },
-  { code: "M54.3", label: "Ischias" },
-  { code: "M51.2", label: "Lumbale Bandscheibenprotrusion" },
-  { code: "M51.1", label: "Lumbaler Bandscheibenprolaps" },
-  { code: "M50.1", label: "Zervikaler Bandscheibenprolaps" },
-  { code: "M47.8", label: "Sonstige Spondylarthropathie" },
-  { code: "M48.0", label: "Spinalkanalstenose" },
-  { code: "M43.1", label: "Spondylolisthesis" },
-
-  // Arthrose / Gelenke
-  { code: "M17.0", label: "Gonarthrose, beidseitig" },
-  { code: "M17.1", label: "Sonstige Gonarthrose" },
-  { code: "M16.0", label: "Coxarthrose, beidseitig" },
-  { code: "M16.1", label: "Sonstige Coxarthrose" },
-  { code: "M18.0", label: "Rhizarthrose (Daumensattelgelenk)" },
-  { code: "M19.9", label: "Arthrose, nicht näher bezeichnet" },
-
-  // Schulter
-  { code: "M75.0", label: "Adhäsive Kapsulitis der Schulter (Frozen Shoulder)" },
-  { code: "M75.1", label: "Rotatorenmanschettensyndrom" },
-  { code: "M75.2", label: "Impingement-Syndrom der Schulter" },
-
-  // Weichteile / Sehnen / Muskeln
-  { code: "M65.9", label: "Synovitis/Tendinitis, nicht näher bezeichnet" },
-  { code: "M65.3", label: "Triggerfinger" },
-  { code: "M70.0", label: "Bursitis praepatellaris" },
-  { code: "M70.2", label: "Bursitis des Ellenbogens" },
-  { code: "M60.9", label: "Myositis, nicht näher bezeichnet" },
-  { code: "M62.5", label: "Muskelschwäche" },
-  { code: "M62.83", label: "Muskelspasmen" },
-  { code: "M79.1", label: "Myalgie" },
-  { code: "M79.6", label: "Gliederschmerzen" },
-
-  // Neurologie / periphere Nerven
-  { code: "G56.0", label: "Karpaltunnelsyndrom" },
-  { code: "G57.0", label: "Ischiasneuralgie" },
-  { code: "G57.3", label: "Peroneusläsion" },
-  { code: "G58.9", label: "Polyneuropathie, nicht näher bezeichnet" },
-  { code: "G81.9", label: "Hemiparese, nicht näher bezeichnet" },
-  { code: "G82.2", label: "Paraplegie" },
-  { code: "G82.5", label: "Tetraplegie" },
-
-  // Folgen Schlaganfall
-  { code: "I69.3", label: "Folgen eines Hirninfarkts" },
-  { code: "I69.4", label: "Folgen einer Hirnblutung" },
-
-  // Atemsystem
-  { code: "J44.9", label: "COPD, nicht näher bezeichnet" },
-  { code: "J45.9", label: "Asthma bronchiale, nicht näher bezeichnet" },
-  { code: "J47.9", label: "Bronchiektasen" },
-
-  // Lymph / Ödem / Wunden
-  { code: "I89.0", label: "Lymphödem" },
-  { code: "I87.0", label: "Chronische venöse Insuffizienz" },
-  { code: "L89.9", label: "Dekubitus, nicht näher bezeichnet" },
-
-  // Trauma / Frakturen / Bänder
-  { code: "S42.2", label: "Fraktur des Humerusschaftes" },
-  { code: "S52.5", label: "Fraktur des distalen Radius" },
-  { code: "S72.0", label: "Schenkelhalsfraktur" },
-  { code: "S82.5", label: "Fraktur des lateralen Malleolus" },
-  { code: "S82.6", label: "Fraktur des medialen Malleolus" },
-  { code: "S83.5", label: "Verstauchung/Zerrung des Kniegelenks" },
-  { code: "S93.4", label: "Verstauchung/Zerrung des Sprunggelenks" },
-  { code: "S86.0", label: "Verletzung der Achillessehne" },
-
-  // Funktion / Gang
-  { code: "R26.0", label: "Gangunsicherheit" },
-  { code: "R26.2", label: "Schwierigkeiten beim Gehen" },
-  { code: "R27.9", label: "Koordinationsstörung, nicht näher bezeichnet" },
-  { code: "R29.6", label: "Neigung zu Stürzen" },
-  { code: "R52.9", label: "Schmerz, nicht näher bezeichnet" }
-];
-
 let recognition = null;
 let isRecording = false;
+let currentSpeechTargetId = "speech-notes";
 
-// aktueller ICD-Vorschlag im "Neuer Patient"-Formular
-let selectedIcdForNewPatient = null;
+// Mapping Textarea-ID -> Feldname im Session-Objekt
+const SPEECH_FIELD_MAP = {
+  "speech-anamnese": "anamnesisText",
+  "speech-befund": "statusText",
+  "speech-diagnose": "diagnosisText",
+  "speech-therapieplan": "therapyPlanText",
+  "speech-verlauf": "courseText",
+  "speech-epikrise": "epikriseText",
+  "speech-notes": "speechNotes"
+};
+
+const SPEECH_LABEL_MAP = {
+  "speech-anamnese": "Anamnese",
+  "speech-befund": "Aktueller Befund / Status",
+  "speech-diagnose": "Diagnose",
+  "speech-therapieplan": "Therapieplan",
+  "speech-verlauf": "Verlauf & Dokumentation",
+  "speech-epikrise": "Epikrise / Bewertung",
+  "speech-notes": "Gesamt-Transkript"
+};
 
 // --------------- Helpers ----------------
 
 function uuid() {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-    const r = (Math.random() * 16) | 0;
-    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    const r = (Math.random() * 16) | 0,
+      v = c === "x" ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
 }
@@ -166,52 +106,40 @@ function getSelectedSession(patient) {
   return patient.sessions?.find((s) => s.id === state.selectedSessionId) || null;
 }
 
-// --------------- DOM refs ----------------
+// --------------- ICD-10 Helpers ----------------
+// nutzt das globale ICD10_CODES aus icd10-codes.js
 
-const patientListEl = document.getElementById("patient-list");
-const newPatientForm = document.getElementById("new-patient-form");
-const patientNameInput = document.getElementById("patient-name-input");
-const patientYearInput = document.getElementById("patient-year-input");
-const patientIcdInput = document.getElementById("patient-icd-input");
-const patientIcdSuggestionsEl = document.getElementById("patient-icd-suggestions");
+function normalizeIcdSearchTerm(value) {
+  return value.trim().toLowerCase();
+}
 
-const noPatientSelectedEl = document.getElementById("no-patient-selected");
-const patientDetailEl = document.getElementById("patient-detail");
-const patientTitleEl = document.getElementById("patient-title");
-const patientMetaEl = document.getElementById("patient-meta");
-const addSessionBtn = document.getElementById("add-session-btn");
+function findIcdMatches(term) {
+  if (!term) return [];
+  const t = normalizeIcdSearchTerm(term);
+  return ICD10_CODES.filter((item) => {
+    return (
+      item.code.toLowerCase().includes(t) ||
+      (item.short && item.short.toLowerCase().includes(t)) ||
+      (item.long && item.long.toLowerCase().includes(t))
+    );
+  }).slice(0, 15);
+}
 
-const sessionListEl = document.getElementById("session-list");
-const scoreChartEl = document.getElementById("score-chart");
+function lookupIcd(codeOrText) {
+  if (!codeOrText) return null;
+  const trimmed = codeOrText.trim();
+  const firstToken = trimmed.split(/\s+/)[0].toUpperCase();
 
-const noSessionSelectedEl = document.getElementById("no-session-selected");
-const sessionEditorEl = document.getElementById("session-editor");
+  let match =
+    ICD10_CODES.find((i) => i.code.toUpperCase() === firstToken) ||
+    ICD10_CODES.find(
+      (i) =>
+        i.short.toLowerCase() === trimmed.toLowerCase() ||
+        i.long.toLowerCase() === trimmed.toLowerCase()
+    );
 
-const sessionTypeSelect = document.getElementById("session-type");
-const sessionDateInput = document.getElementById("session-date");
-const sessionRegionSelect = document.getElementById("session-region");
-
-const complaintChipsEl = document.getElementById("complaint-chips");
-const measureChipsEl = document.getElementById("measure-chips");
-
-const painSlider = document.getElementById("pain-slider");
-const painValueEl = document.getElementById("pain-value");
-const functionSlider = document.getElementById("function-slider");
-const functionValueEl = document.getElementById("function-value");
-
-const speechToggleBtn = document.getElementById("speech-toggle-btn");
-const speechHintEl = document.getElementById("speech-hint");
-const speechNotesEl = document.getElementById("speech-notes");
-const speechStatusIndicator = document.getElementById("speech-status-indicator");
-
-const sessionNoteEl = document.getElementById("session-note");
-const generateNoteBtn = document.getElementById("generate-note-btn");
-const copyNoteBtn = document.getElementById("copy-note-btn");
-const saveSessionBtn = document.getElementById("save-session-btn");
-const deleteSessionBtn = document.getElementById("delete-session-btn");
-
-const scoreValueEl = document.getElementById("score-value");
-const scoreCategoryEl = document.getElementById("score-category");
+  return match || null;
+}
 
 // --------------- Score & Note ----------------
 
@@ -233,14 +161,6 @@ function scoreCategoryFromValue(score) {
 function generateNoteForSession(patient, session) {
   const typeLabel = session.type === "initial" ? "Erstbefund" : "Folgetermin";
   const dateLabel = session.date ? formatDateShort(session.date) : "ohne Datum";
-  const regionLabel = session.region || "nicht spezifiziert";
-
-  let icdText = "";
-  if (patient.icdCode) {
-    icdText = patient.icdCode;
-    if (patient.icdLabel) icdText += ` – ${patient.icdLabel}`;
-  }
-  const icdLabel = icdText ? ` (ICD-10: ${icdText})` : "";
 
   const pain = typeof session.pain === "number" ? session.pain : 5;
   const func = typeof session.function === "number" ? session.function : 5;
@@ -264,67 +184,108 @@ function generateNoteForSession(patient, session) {
 
   const scoreCat = scoreCategoryFromValue(score);
 
-  let subjective = "Subjektiv: ";
-  if (complaintLabels.length) {
-    subjective += `Patient:in berichtet über ${complaintLabels.join(
-      ", "
-    )} im Bereich ${regionLabel}. `;
-  } else {
-    subjective += `Patient:in berichtet über Beschwerden im Bereich ${regionLabel}. `;
-  }
-  subjective += `Schmerzintensität aktuell ${pain}/10, Alltags­einschränkung ${func}/10. `;
+  const icdPart = patient.icdCode
+    ? `ICD-10: ${patient.icdCode} – ${patient.icdShort || ""}`.trim()
+    : "ICD-10: nicht dokumentiert";
 
-  let objective = "Objektiv: ";
-  if (session.complaints?.includes("limited_rom")) {
-    objective += "Beweglichkeit reduziert. ";
-  }
-  if (session.complaints?.includes("weakness")) {
-    objective += "Kraftdefizite in relevanten Muskelgruppen. ";
-  }
-  if (session.complaints?.includes("instability")) {
-    objective += "subjektives Instabilitätsgefühl, Stabilitätskontrolle geprüft. ";
-  }
-  if (objective === "Objektiv: ") {
-    objective +=
-      "Muskel- und Gelenkfunktion orientierend untersucht, weitere Tests je nach Verlauf. ";
-  }
+  // Textblöcke aus den Reitern
+  const anamnese =
+    session.anamnesisText && session.anamnesisText.trim().length
+      ? `Anamnese:\n${session.anamnesisText.trim()}`
+      : "";
 
-  let assessment = `Assessment: Beschwerde-Score ${score}/100 (${scoreCat.text}). `;
-  assessment += `Befund vereinbar mit funktionellen Einschränkungen der Region ${regionLabel}. `;
-  if (session.speechNotes && session.speechNotes.trim()) {
-    assessment += `Relevante Zusatzinformationen: ${session.speechNotes.trim()} `;
-  }
+  const aktuellerBefund =
+    session.statusText && session.statusText.trim().length
+      ? `Aktueller Befund / Status:\n${session.statusText.trim()}`
+      : "";
 
-  let plan = "Plan: ";
-  if (measureLabels.length) {
-    plan += `heute durchgeführt: ${measureLabels.join(", ")}. `;
-  } else {
-    plan += "symptomorientierte Behandlung durchgeführt. ";
-  }
-  plan += "Fortführung der Therapie, Anpassung der Belastung, Heimübungsprogramm nach Bedarf. ";
+  const diagnose =
+    session.diagnosisText && session.diagnosisText.trim().length
+      ? `Diagnose (physiotherapeutisch / ärztlich):\n${session.diagnosisText.trim()}`
+      : "";
 
-  const header = `${typeLabel} am ${dateLabel} – Region: ${regionLabel}${icdLabel}`;
-  return `${header}\n\n${subjective}\n\n${objective}\n\n${assessment}\n\n${plan}`;
+  const therapieplan =
+    session.therapyPlanText && session.therapyPlanText.trim().length
+      ? `Therapievorschlag / Therapieplan:\n${session.therapyPlanText.trim()}`
+      : "";
+
+  const verlauf =
+    session.courseText && session.courseText.trim().length
+      ? `Verlauf & Dokumentation:\n${session.courseText.trim()}`
+      : "";
+
+  const epikrise =
+    session.epikriseText && session.epikriseText.trim().length
+      ? `Epikrise / Bewertung / Empfehlung:\n${session.epikriseText.trim()}`
+      : "";
+
+  const subjectiveAuto = (() => {
+    if (!complaintLabels.length) return "";
+    return (
+      "Subjektiv (Kurzfassung): Patient:in berichtet über " +
+      complaintLabels.join(", ") +
+      ". Schmerzintensität aktuell " +
+      pain +
+      "/10, Alltags­einschränkung " +
+      func +
+      "/10."
+    );
+  })();
+
+  const planAuto = (() => {
+    if (!measureLabels.length) return "";
+    return (
+      "Plan (Kurzfassung): heute durchgeführt: " +
+      measureLabels.join(", ") +
+      ". Fortführung der Therapie, Anpassung der Belastung, Heimübungsprogramm nach Bedarf."
+    );
+  })();
+
+  const scoreBlock = `Beschwerde-Score: ${score}/100 (${scoreCat.text}).`;
+
+  const parts = [
+    `${typeLabel} am ${dateLabel}`,
+    icdPart,
+    "", // Leerzeile
+    anamnese,
+    aktuellerBefund,
+    diagnose,
+    therapieplan,
+    verlauf,
+    epikrise,
+    subjectiveAuto,
+    planAuto,
+    scoreBlock
+  ]
+    .filter((p) => p !== "")
+    .join("\n\n");
+
+  return parts;
 }
 
 // --------------- Data actions ----------------
 
-function createNewSession(patient, type = "initial") {
+function createNewSession() {
   const session = {
     id: uuid(),
-    type,
+    type: "initial",
     date: todayIso(),
-    region: "", // Region wird pro Sitzung gesetzt
     complaints: [],
     measures: [],
     pain: 5,
     function: 5,
+    // Texte pro Reiter
+    anamnesisText: "",
+    statusText: "",
+    diagnosisText: "",
+    therapyPlanText: "",
+    courseText: "",
+    epikriseText: "",
+    // Gesamt
     speechNotes: "",
     note: "",
     score: null
   };
-  if (!patient.sessions) patient.sessions = [];
-  patient.sessions.push(session);
   return session;
 }
 
@@ -336,6 +297,66 @@ function updateCurrentSession(updater) {
   updater(session);
   saveState();
 }
+
+// --------------- DOM refs ----------------
+
+const patientListEl = document.getElementById("patient-list");
+const newPatientForm = document.getElementById("new-patient-form");
+const patientNameInput = document.getElementById("patient-name-input");
+const patientYearInput = document.getElementById("patient-year-input");
+const patientIcdInput = document.getElementById("patient-icd-input");
+const patientIcdSuggestions = document.getElementById("patient-icd-suggestions");
+const patientIcdSelectedEl = document.getElementById("patient-icd-selected");
+
+const noPatientSelectedEl = document.getElementById("no-patient-selected");
+const patientDetailEl = document.getElementById("patient-detail");
+const patientTitleEl = document.getElementById("patient-title");
+const patientMetaEl = document.getElementById("patient-meta");
+const addSessionBtn = document.getElementById("add-session-btn");
+
+const sessionListEl = document.getElementById("session-list");
+const scoreChartEl = document.getElementById("score-chart");
+
+const noSessionSelectedEl = document.getElementById("no-session-selected");
+const sessionEditorEl = document.getElementById("session-editor");
+
+const sessionTypeSelect = document.getElementById("session-type");
+const sessionDateInput = document.getElementById("session-date");
+
+const complaintChipsEl = document.getElementById("complaint-chips");
+const measureChipsEl = document.getElementById("measure-chips");
+
+const painSlider = document.getElementById("pain-slider");
+const painValueEl = document.getElementById("pain-value");
+const functionSlider = document.getElementById("function-slider");
+const functionValueEl = document.getElementById("function-value");
+
+// Speech
+const speechToggleBtn = document.getElementById("speech-toggle-btn");
+const speechHintEl = document.getElementById("speech-hint");
+const speechNotesEl = document.getElementById("speech-notes");
+const speechStatusIndicator = document.getElementById("speech-status-indicator");
+
+const speechTabs = document.querySelectorAll(".speech-tab");
+const speechTabPanels = document.querySelectorAll(".speech-tab-panel");
+const speechRecordButtons = document.querySelectorAll(".speech-record-btn");
+
+const speechAnamneseEl = document.getElementById("speech-anamnese");
+const speechBefundEl = document.getElementById("speech-befund");
+const speechDiagnoseEl = document.getElementById("speech-diagnose");
+const speechTherapieplanEl = document.getElementById("speech-therapieplan");
+const speechVerlaufEl = document.getElementById("speech-verlauf");
+const speechEpikriseEl = document.getElementById("speech-epikrise");
+
+// Text
+const sessionNoteEl = document.getElementById("session-note");
+const generateNoteBtn = document.getElementById("generate-note-btn");
+const copyNoteBtn = document.getElementById("copy-note-btn");
+const saveSessionBtn = document.getElementById("save-session-btn");
+const deleteSessionBtn = document.getElementById("delete-session-btn");
+
+const scoreValueEl = document.getElementById("score-value");
+const scoreCategoryEl = document.getElementById("score-category");
 
 // --------------- Rendering ----------------
 
@@ -368,8 +389,7 @@ function renderPatients() {
     const parts = [];
     if (p.birthYear) parts.push(`*${p.birthYear}`);
     if (p.icdCode) {
-      const icdText = p.icdLabel ? `${p.icdCode} ${p.icdLabel}` : p.icdCode;
-      parts.push(icdText);
+      parts.push(`ICD-10: ${p.icdCode}`);
     }
     metaSpan.textContent = parts.join(" · ");
 
@@ -381,7 +401,8 @@ function renderPatients() {
     li.addEventListener("click", () => {
       state.selectedPatientId = p.id;
       if (!p.sessions || !p.sessions.length) {
-        const s = createNewSession(p, "initial");
+        const s = createNewSession();
+        p.sessions = [s];
         state.selectedSessionId = s.id;
       } else {
         state.selectedSessionId = p.sessions[0].id;
@@ -406,13 +427,15 @@ function renderPatientDetail() {
   patientDetailEl.classList.remove("hidden");
 
   patientTitleEl.textContent = patient.name || "Unbenannter Patient";
+
   const meta = [];
   if (patient.birthYear) meta.push(`*${patient.birthYear}`);
   if (patient.icdCode) {
-    const icdText = patient.icdLabel
-      ? `${patient.icdCode} – ${patient.icdLabel}`
-      : patient.icdCode;
-    meta.push(`ICD-10: ${icdText}`);
+    meta.push(
+      `ICD-10: ${patient.icdCode}${
+        patient.icdShort ? " – " + patient.icdShort : ""
+      }`
+    );
   }
   patientMetaEl.textContent = meta.join(" · ") || "Keine Zusatzinfos";
 
@@ -449,7 +472,6 @@ function renderSessions(patient) {
     const meta = document.createElement("span");
     meta.className = "meta";
     const parts = [];
-    if (s.region) parts.push(s.region);
     if (typeof s.score === "number") parts.push(`Score ${s.score}`);
     meta.textContent = parts.join(" · ");
 
@@ -480,9 +502,8 @@ function renderSessionEditor(patient) {
 
   sessionTypeSelect.value = session.type || "initial";
   sessionDateInput.value = session.date || todayIso();
-  sessionRegionSelect.value = session.region || "";
 
-  // Beschwerden
+  // Chips: Beschwerden
   complaintChipsEl.innerHTML = "";
   const selectedComplaints = session.complaints || [];
   COMPLAINT_OPTIONS.forEach((opt) => {
@@ -500,7 +521,7 @@ function renderSessionEditor(patient) {
     complaintChipsEl.appendChild(chip);
   });
 
-  // Maßnahmen
+  // Chips: Maßnahmen
   measureChipsEl.innerHTML = "";
   const selectedMeasures = session.measures || [];
   MEASURE_OPTIONS.forEach((opt) => {
@@ -525,8 +546,14 @@ function renderSessionEditor(patient) {
   functionSlider.value = func;
   functionValueEl.textContent = func;
 
+  // Reiter-Texte
+  speechAnamneseEl.value = session.anamnesisText || "";
+  speechBefundEl.value = session.statusText || "";
+  speechDiagnoseEl.value = session.diagnosisText || "";
+  speechTherapieplanEl.value = session.therapyPlanText || "";
+  speechVerlaufEl.value = session.courseText || "";
+  speechEpikriseEl.value = session.epikriseText || "";
   speechNotesEl.value = session.speechNotes || "";
-  sessionNoteEl.value = session.note || "";
 
   if (typeof session.score === "number") {
     scoreValueEl.textContent = session.score;
@@ -538,6 +565,8 @@ function renderSessionEditor(patient) {
     scoreCategoryEl.textContent = "Noch nicht berechnet";
     scoreCategoryEl.style.color = "var(--muted)";
   }
+
+  sessionNoteEl.value = session.note || "";
 }
 
 function toggleInArray(arr, id) {
@@ -605,6 +634,16 @@ function renderScoreChart(patient) {
 
 // --------------- Speech ----------------
 
+function setCurrentSpeechTarget(targetId) {
+  currentSpeechTargetId = targetId || "speech-notes";
+  const label = SPEECH_LABEL_MAP[currentSpeechTargetId] || "Gesamt-Transkript";
+
+  speechHintEl.textContent =
+    "Aktiver Bereich: " +
+    label +
+    ". Aufnahme mit dem Button oben starten/stoppen.";
+}
+
 function initSpeech() {
   const SpeechRecognition =
     window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -612,7 +651,7 @@ function initSpeech() {
   if (!SpeechRecognition) {
     speechToggleBtn.disabled = true;
     speechHintEl.textContent =
-      "Sprachfunktion in diesem Browser nicht verfügbar (Chrome empfohlen).";
+      "Sprachfunktion in diesem Browser nicht verfügbar (Desktop-Chrome empfohlen).";
     speechStatusIndicator.textContent = "Mikrofon nicht verfügbar";
     return;
   }
@@ -631,7 +670,7 @@ function initSpeech() {
 
   recognition.onend = () => {
     isRecording = false;
-    speechToggleBtn.textContent = "🎙️ Aufnahme starten";
+    speechToggleBtn.textContent = "🎙️ Aufnahme starten (aktiver Bereich)";
     speechStatusIndicator.textContent = "Mikrofon bereit";
     speechStatusIndicator.classList.remove("active");
   };
@@ -639,7 +678,7 @@ function initSpeech() {
   recognition.onerror = (e) => {
     console.error("Speech error:", e.error);
     isRecording = false;
-    speechToggleBtn.textContent = "🎙️ Aufnahme starten";
+    speechToggleBtn.textContent = "🎙️ Aufnahme starten (aktiver Bereich)";
     speechStatusIndicator.textContent = "Fehler bei Spracheingabe";
     speechStatusIndicator.classList.remove("active");
   };
@@ -651,13 +690,19 @@ function initSpeech() {
         finalText += event.results[i][0].transcript + " ";
       }
     }
-    if (finalText) {
-      const current = speechNotesEl.value.trim();
-      speechNotesEl.value = (current + " " + finalText).trim();
-      updateCurrentSession((session) => {
-        session.speechNotes = speechNotesEl.value;
-      });
-    }
+    if (!finalText) return;
+
+    const targetId = currentSpeechTargetId || "speech-notes";
+    const textarea = document.getElementById(targetId);
+    if (!textarea) return;
+
+    const current = textarea.value.trim();
+    textarea.value = (current + " " + finalText).trim();
+
+    updateCurrentSession((session) => {
+      const fieldName = SPEECH_FIELD_MAP[targetId] || "speechNotes";
+      session[fieldName] = textarea.value;
+    });
   };
 
   speechStatusIndicator.textContent = "Mikrofon bereit";
@@ -675,60 +720,10 @@ function toggleSpeech() {
   }
 }
 
-// --------------- ICD-10 Vorschläge ----------------
-
-function renderIcdSuggestions(query) {
-  const q = query.trim().toLowerCase();
-  patientIcdSuggestionsEl.innerHTML = "";
-
-  if (q.length < 2) {
-    patientIcdSuggestionsEl.style.display = "none";
-    selectedIcdForNewPatient = null;
-    return;
-  }
-
-  const matches = ICD_OPTIONS.filter(
-    (item) =>
-      item.code.toLowerCase().includes(q) ||
-      item.label.toLowerCase().includes(q)
-  ).slice(0, 12);
-
-  if (!matches.length) {
-    patientIcdSuggestionsEl.style.display = "none";
-    selectedIcdForNewPatient = null;
-    return;
-  }
-
-  matches.forEach((item) => {
-    const div = document.createElement("div");
-    div.className = "icd-suggestion-item";
-
-    const codeSpan = document.createElement("span");
-    codeSpan.className = "icd-suggestion-item-code";
-    codeSpan.textContent = item.code;
-
-    const labelSpan = document.createElement("span");
-    labelSpan.className = "icd-suggestion-item-label";
-    labelSpan.textContent = item.label;
-
-    div.appendChild(codeSpan);
-    div.appendChild(labelSpan);
-
-    div.addEventListener("click", () => {
-      patientIcdInput.value = `${item.code} – ${item.label}`;
-      selectedIcdForNewPatient = item;
-      patientIcdSuggestionsEl.style.display = "none";
-    });
-
-    patientIcdSuggestionsEl.appendChild(div);
-  });
-
-  patientIcdSuggestionsEl.style.display = "block";
-}
-
 // --------------- Event listeners ----------------
 
 function setupEventListeners() {
+  // neuer Patient
   newPatientForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const name = patientNameInput.value.trim();
@@ -737,69 +732,99 @@ function setupEventListeners() {
       return;
     }
 
+    const icdInput = patientIcdInput.value.trim();
+    if (!icdInput) {
+      alert("Bitte eine ICD-10-Hauptdiagnose eingeben.");
+      return;
+    }
+
     const year = patientYearInput.value
       ? parseInt(patientYearInput.value, 10)
       : null;
 
-    const icdRaw = patientIcdInput.value.trim();
-    if (!icdRaw) {
-      alert("Bitte ICD-10 Hauptdiagnose eingeben.");
-      return;
-    }
-
-    let icdCode = icdRaw;
-    let icdLabel = "";
-
-    if (selectedIcdForNewPatient) {
-      icdCode = selectedIcdForNewPatient.code;
-      icdLabel = selectedIcdForNewPatient.label;
-    } else {
-      // Versuch, Muster wie "M54.5 – Kreuzschmerz" zu splitten
-      const parts = icdRaw.split("–");
-      if (parts.length >= 1) icdCode = parts[0].trim();
-      if (parts.length >= 2) icdLabel = parts[1].trim();
-    }
+    const icdMatch = lookupIcd(icdInput);
 
     const patient = {
       id: uuid(),
       name,
-      birthYear: year,
-      icdCode,
-      icdLabel,
+      birthYear: Number.isFinite(year) ? year : null,
+      icdCode: icdMatch ? icdMatch.code : icdInput.split(/\s+/)[0],
+      icdShort: icdMatch ? icdMatch.short : "",
+      icdLong: icdMatch ? icdMatch.long : "",
       sessions: []
     };
 
+    const firstSession = createNewSession();
+    patient.sessions.push(firstSession);
+
     state.patients.push(patient);
     state.selectedPatientId = patient.id;
+    state.selectedSessionId = firstSession.id;
 
-    const s = createNewSession(patient, "initial");
-    state.selectedSessionId = s.id;
-
+    // Reset Form
     patientNameInput.value = "";
     patientYearInput.value = "";
     patientIcdInput.value = "";
-    selectedIcdForNewPatient = null;
-    patientIcdSuggestionsEl.style.display = "none";
+    patientIcdSelectedEl.textContent = "Noch keine Diagnose ausgewählt.";
+    patientIcdSuggestions.style.display = "none";
 
     saveState();
     render();
   });
 
+  // ICD-10 Suche
   patientIcdInput.addEventListener("input", () => {
-    selectedIcdForNewPatient = null;
-    renderIcdSuggestions(patientIcdInput.value);
+    const value = patientIcdInput.value;
+    const matches = findIcdMatches(value);
+
+    patientIcdSuggestions.innerHTML = "";
+    if (!matches.length || !value.trim()) {
+      patientIcdSuggestions.style.display = "none";
+      return;
+    }
+
+    matches.forEach((m) => {
+      const item = document.createElement("div");
+      item.className = "icd-suggestion-item";
+
+      const codeSpan = document.createElement("span");
+      codeSpan.className = "icd-code";
+      codeSpan.textContent = m.code;
+
+      const textSpan = document.createElement("span");
+      textSpan.className = "icd-text";
+      textSpan.textContent = m.short + (m.long ? " – " + m.long : "");
+
+      item.appendChild(codeSpan);
+      item.appendChild(textSpan);
+
+      item.addEventListener("click", () => {
+        patientIcdInput.value = `${m.code} ${m.short}`;
+        patientIcdSelectedEl.textContent =
+          `${m.code} – ${m.short}` + (m.long ? ` (${m.long})` : "");
+        patientIcdSuggestions.innerHTML = "";
+        patientIcdSuggestions.style.display = "none";
+      });
+
+      patientIcdSuggestions.appendChild(item);
+    });
+
+    patientIcdSuggestions.style.display = "block";
   });
 
-  patientIcdInput.addEventListener("blur", () => {
-    setTimeout(() => {
-      patientIcdSuggestionsEl.style.display = "none";
-    }, 150);
+  document.addEventListener("click", (e) => {
+    if (!patientIcdSuggestions.contains(e.target) && e.target !== patientIcdInput) {
+      patientIcdSuggestions.style.display = "none";
+    }
   });
 
   addSessionBtn.addEventListener("click", () => {
     const patient = getSelectedPatient();
     if (!patient) return;
-    const s = createNewSession(patient, "followup");
+    const s = createNewSession();
+    s.type = "followup";
+    if (!patient.sessions) patient.sessions = [];
+    patient.sessions.push(s);
     state.selectedSessionId = s.id;
     saveState();
     renderPatientDetail();
@@ -819,12 +844,6 @@ function setupEventListeners() {
     renderPatientDetail();
   });
 
-  sessionRegionSelect.addEventListener("change", () => {
-    updateCurrentSession((session) => {
-      session.region = sessionRegionSelect.value;
-    });
-  });
-
   painSlider.addEventListener("input", () => {
     const val = parseInt(painSlider.value, 10);
     painValueEl.textContent = val;
@@ -841,6 +860,43 @@ function setupEventListeners() {
     });
   });
 
+  // Reiter-Texte -> Session
+  speechAnamneseEl.addEventListener("input", () => {
+    updateCurrentSession((session) => {
+      session.anamnesisText = speechAnamneseEl.value;
+    });
+  });
+
+  speechBefundEl.addEventListener("input", () => {
+    updateCurrentSession((session) => {
+      session.statusText = speechBefundEl.value;
+    });
+  });
+
+  speechDiagnoseEl.addEventListener("input", () => {
+    updateCurrentSession((session) => {
+      session.diagnosisText = speechDiagnoseEl.value;
+    });
+  });
+
+  speechTherapieplanEl.addEventListener("input", () => {
+    updateCurrentSession((session) => {
+      session.therapyPlanText = speechTherapieplanEl.value;
+    });
+  });
+
+  speechVerlaufEl.addEventListener("input", () => {
+    updateCurrentSession((session) => {
+      session.courseText = speechVerlaufEl.value;
+    });
+  });
+
+  speechEpikriseEl.addEventListener("input", () => {
+    updateCurrentSession((session) => {
+      session.epikriseText = speechEpikriseEl.value;
+    });
+  });
+
   speechNotesEl.addEventListener("input", () => {
     updateCurrentSession((session) => {
       session.speechNotes = speechNotesEl.value;
@@ -851,6 +907,47 @@ function setupEventListeners() {
     updateCurrentSession((session) => {
       session.note = sessionNoteEl.value;
     });
+  });
+
+  // Tabs
+  speechTabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const target = tab.dataset.target;
+
+      speechTabs.forEach((t) => t.classList.remove("active"));
+      speechTabPanels.forEach((p) => p.classList.remove("active"));
+
+      tab.classList.add("active");
+      document.getElementById(target)?.classList.add("active");
+    });
+  });
+
+  // "Aufnahme für diesen Bereich" -> Ziel setzen
+  speechRecordButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const targetId = btn.dataset.targetTextarea; // z.B. "speech-anamnese"
+      setCurrentSpeechTarget(targetId);
+
+      // zugehöriges Panel aktivieren
+      const panel = btn.closest(".speech-tab-panel");
+      if (panel) {
+        const panelId = panel.id;
+        speechTabs.forEach((t) =>
+          t.classList.toggle("active", t.dataset.target === panelId)
+        );
+        speechTabPanels.forEach((p) =>
+          p.classList.toggle("active", p.id === panelId)
+        );
+      }
+
+      // Fokus ins Textfeld
+      const textarea = document.getElementById(targetId);
+      if (textarea) textarea.focus();
+    });
+  });
+
+  speechToggleBtn.addEventListener("click", () => {
+    toggleSpeech();
   });
 
   generateNoteBtn.addEventListener("click", () => {
@@ -903,10 +1000,6 @@ function setupEventListeners() {
     saveState();
     renderPatientDetail();
   });
-
-  speechToggleBtn.addEventListener("click", () => {
-    toggleSpeech();
-  });
 }
 
 // --------------- Init ----------------
@@ -916,4 +1009,5 @@ document.addEventListener("DOMContentLoaded", () => {
   render();
   setupEventListeners();
   initSpeech();
+  setCurrentSpeechTarget("speech-notes");
 });
