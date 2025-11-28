@@ -1,7 +1,7 @@
 // app.js – Physio Doc Co-Pilot Pilot
-// Fokus: ICD-10 (separate Datei), strukturierte Transkripte pro Reiter, alles lokal im Browser
+// Fokus: Patient extrem schnell anlegen, ICD-10 + strukturierte Doku-Bereiche
 
-const STORAGE_KEY = "physioDocPilot_v5";
+const STORAGE_KEY = "physioDocPilot_v3";
 
 let state = {
   patients: [],
@@ -29,30 +29,27 @@ const MEASURE_OPTIONS = [
   { id: "device", label: "Gerätetraining" }
 ];
 
+// ---------------- ICD-10 Helpers (aus icd10-codes.js) -----------------
+// Erwartet globale Konstante ICD10_CODES
+
+function searchIcd(term) {
+  if (!term || !Array.isArray(ICD10_CODES)) return [];
+  const q = term.trim().toLowerCase();
+  if (!q) return [];
+  return ICD10_CODES.filter((item) => {
+    return (
+      item.code.toLowerCase().includes(q) ||
+      (item.short && item.short.toLowerCase().includes(q)) ||
+      (item.long && item.long.toLowerCase().includes(q))
+    );
+  }).slice(0, 10);
+}
+
+// ---------------- Speech globals -----------------
+
 let recognition = null;
 let isRecording = false;
-let currentSpeechTargetId = "speech-notes";
-
-// Mapping Textarea-ID -> Feldname im Session-Objekt
-const SPEECH_FIELD_MAP = {
-  "speech-anamnese": "anamnesisText",
-  "speech-befund": "statusText",
-  "speech-diagnose": "diagnosisText",
-  "speech-therapieplan": "therapyPlanText",
-  "speech-verlauf": "courseText",
-  "speech-epikrise": "epikriseText",
-  "speech-notes": "speechNotes"
-};
-
-const SPEECH_LABEL_MAP = {
-  "speech-anamnese": "Anamnese",
-  "speech-befund": "Aktueller Befund / Status",
-  "speech-diagnose": "Diagnose",
-  "speech-therapieplan": "Therapieplan",
-  "speech-verlauf": "Verlauf & Dokumentation",
-  "speech-epikrise": "Epikrise / Bewertung",
-  "speech-notes": "Gesamt-Transkript"
-};
+let activeSpeechTargetId = null; // ID der Textarea, in die transkribiert wird
 
 // --------------- Helpers ----------------
 
@@ -106,198 +103,6 @@ function getSelectedSession(patient) {
   return patient.sessions?.find((s) => s.id === state.selectedSessionId) || null;
 }
 
-// --------------- ICD-10 Helpers ----------------
-// nutzt das globale ICD10_CODES aus icd10-codes.js
-
-function normalizeIcdSearchTerm(value) {
-  return value.trim().toLowerCase();
-}
-
-function findIcdMatches(term) {
-  if (!term) return [];
-  const t = normalizeIcdSearchTerm(term);
-  return ICD10_CODES.filter((item) => {
-    return (
-      item.code.toLowerCase().includes(t) ||
-      (item.short && item.short.toLowerCase().includes(t)) ||
-      (item.long && item.long.toLowerCase().includes(t))
-    );
-  }).slice(0, 15);
-}
-
-function lookupIcd(codeOrText) {
-  if (!codeOrText) return null;
-  const trimmed = codeOrText.trim();
-  const firstToken = trimmed.split(/\s+/)[0].toUpperCase();
-
-  let match =
-    ICD10_CODES.find((i) => i.code.toUpperCase() === firstToken) ||
-    ICD10_CODES.find(
-      (i) =>
-        i.short.toLowerCase() === trimmed.toLowerCase() ||
-        i.long.toLowerCase() === trimmed.toLowerCase()
-    );
-
-  return match || null;
-}
-
-// --------------- Score & Note ----------------
-
-function calculateScore({ pain, func, complaintsCount }) {
-  const painNorm = (pain / 10) * 100;
-  const funcNorm = (func / 10) * 100;
-  const compNorm = (Math.min(complaintsCount, 5) / 5) * 100;
-
-  const score = painNorm * 0.4 + funcNorm * 0.4 + compNorm * 0.2;
-  return Math.round(score);
-}
-
-function scoreCategoryFromValue(score) {
-  if (score < 34) return { text: "milde Beschwerden", color: "#9ae6b4" };
-  if (score < 67) return { text: "moderate Beschwerden", color: "#faf089" };
-  return { text: "ausgeprägte Beschwerden", color: "#feb2b2" };
-}
-
-function generateNoteForSession(patient, session) {
-  const typeLabel = session.type === "initial" ? "Erstbefund" : "Folgetermin";
-  const dateLabel = session.date ? formatDateShort(session.date) : "ohne Datum";
-
-  const pain = typeof session.pain === "number" ? session.pain : 5;
-  const func = typeof session.function === "number" ? session.function : 5;
-  const complaintLabels = (session.complaints || []).map((id) => {
-    const opt = COMPLAINT_OPTIONS.find((c) => c.id === id);
-    return opt ? opt.label : id;
-  });
-  const measureLabels = (session.measures || []).map((id) => {
-    const opt = MEASURE_OPTIONS.find((m) => m.id === id);
-    return opt ? opt.label : id;
-  });
-
-  const score =
-    typeof session.score === "number"
-      ? session.score
-      : calculateScore({
-          pain,
-          func,
-          complaintsCount: complaintLabels.length
-        });
-
-  const scoreCat = scoreCategoryFromValue(score);
-
-  const icdPart = patient.icdCode
-    ? `ICD-10: ${patient.icdCode} – ${patient.icdShort || ""}`.trim()
-    : "ICD-10: nicht dokumentiert";
-
-  // Textblöcke aus den Reitern
-  const anamnese =
-    session.anamnesisText && session.anamnesisText.trim().length
-      ? `Anamnese:\n${session.anamnesisText.trim()}`
-      : "";
-
-  const aktuellerBefund =
-    session.statusText && session.statusText.trim().length
-      ? `Aktueller Befund / Status:\n${session.statusText.trim()}`
-      : "";
-
-  const diagnose =
-    session.diagnosisText && session.diagnosisText.trim().length
-      ? `Diagnose (physiotherapeutisch / ärztlich):\n${session.diagnosisText.trim()}`
-      : "";
-
-  const therapieplan =
-    session.therapyPlanText && session.therapyPlanText.trim().length
-      ? `Therapievorschlag / Therapieplan:\n${session.therapyPlanText.trim()}`
-      : "";
-
-  const verlauf =
-    session.courseText && session.courseText.trim().length
-      ? `Verlauf & Dokumentation:\n${session.courseText.trim()}`
-      : "";
-
-  const epikrise =
-    session.epikriseText && session.epikriseText.trim().length
-      ? `Epikrise / Bewertung / Empfehlung:\n${session.epikriseText.trim()}`
-      : "";
-
-  const subjectiveAuto = (() => {
-    if (!complaintLabels.length) return "";
-    return (
-      "Subjektiv (Kurzfassung): Patient:in berichtet über " +
-      complaintLabels.join(", ") +
-      ". Schmerzintensität aktuell " +
-      pain +
-      "/10, Alltags­einschränkung " +
-      func +
-      "/10."
-    );
-  })();
-
-  const planAuto = (() => {
-    if (!measureLabels.length) return "";
-    return (
-      "Plan (Kurzfassung): heute durchgeführt: " +
-      measureLabels.join(", ") +
-      ". Fortführung der Therapie, Anpassung der Belastung, Heimübungsprogramm nach Bedarf."
-    );
-  })();
-
-  const scoreBlock = `Beschwerde-Score: ${score}/100 (${scoreCat.text}).`;
-
-  const parts = [
-    `${typeLabel} am ${dateLabel}`,
-    icdPart,
-    "", // Leerzeile
-    anamnese,
-    aktuellerBefund,
-    diagnose,
-    therapieplan,
-    verlauf,
-    epikrise,
-    subjectiveAuto,
-    planAuto,
-    scoreBlock
-  ]
-    .filter((p) => p !== "")
-    .join("\n\n");
-
-  return parts;
-}
-
-// --------------- Data actions ----------------
-
-function createNewSession() {
-  const session = {
-    id: uuid(),
-    type: "initial",
-    date: todayIso(),
-    complaints: [],
-    measures: [],
-    pain: 5,
-    function: 5,
-    // Texte pro Reiter
-    anamnesisText: "",
-    statusText: "",
-    diagnosisText: "",
-    therapyPlanText: "",
-    courseText: "",
-    epikriseText: "",
-    // Gesamt
-    speechNotes: "",
-    note: "",
-    score: null
-  };
-  return session;
-}
-
-function updateCurrentSession(updater) {
-  const patient = getSelectedPatient();
-  if (!patient) return;
-  const session = getSelectedSession(patient);
-  if (!session) return;
-  updater(session);
-  saveState();
-}
-
 // --------------- DOM refs ----------------
 
 const patientListEl = document.getElementById("patient-list");
@@ -305,7 +110,7 @@ const newPatientForm = document.getElementById("new-patient-form");
 const patientNameInput = document.getElementById("patient-name-input");
 const patientYearInput = document.getElementById("patient-year-input");
 const patientIcdInput = document.getElementById("patient-icd-input");
-const patientIcdSuggestions = document.getElementById("patient-icd-suggestions");
+const patientIcdSuggestionsEl = document.getElementById("patient-icd-suggestions");
 const patientIcdSelectedEl = document.getElementById("patient-icd-selected");
 
 const noPatientSelectedEl = document.getElementById("no-patient-selected");
@@ -331,24 +136,19 @@ const painValueEl = document.getElementById("pain-value");
 const functionSlider = document.getElementById("function-slider");
 const functionValueEl = document.getElementById("function-value");
 
-// Speech
 const speechToggleBtn = document.getElementById("speech-toggle-btn");
 const speechHintEl = document.getElementById("speech-hint");
-const speechNotesEl = document.getElementById("speech-notes");
 const speechStatusIndicator = document.getElementById("speech-status-indicator");
 
-const speechTabs = document.querySelectorAll(".speech-tab");
-const speechTabPanels = document.querySelectorAll(".speech-tab-panel");
-const speechRecordButtons = document.querySelectorAll(".speech-record-btn");
-
+// strukturierte Textfelder
 const speechAnamneseEl = document.getElementById("speech-anamnese");
 const speechBefundEl = document.getElementById("speech-befund");
 const speechDiagnoseEl = document.getElementById("speech-diagnose");
 const speechTherapieplanEl = document.getElementById("speech-therapieplan");
 const speechVerlaufEl = document.getElementById("speech-verlauf");
 const speechEpikriseEl = document.getElementById("speech-epikrise");
+const speechNotesEl = document.getElementById("speech-notes");
 
-// Text
 const sessionNoteEl = document.getElementById("session-note");
 const generateNoteBtn = document.getElementById("generate-note-btn");
 const copyNoteBtn = document.getElementById("copy-note-btn");
@@ -357,6 +157,154 @@ const deleteSessionBtn = document.getElementById("delete-session-btn");
 
 const scoreValueEl = document.getElementById("score-value");
 const scoreCategoryEl = document.getElementById("score-category");
+
+// --------------- Score & Note ----------------
+
+function calculateScore({ pain, func, complaintsCount }) {
+  const painNorm = (pain / 10) * 100;
+  const funcNorm = (func / 10) * 100;
+  const compNorm = (Math.min(complaintsCount, 5) / 5) * 100;
+
+  const score = painNorm * 0.4 + funcNorm * 0.4 + compNorm * 0.2;
+  return Math.round(score);
+}
+
+function scoreCategoryFromValue(score) {
+  if (score < 34) return { text: "milde Beschwerden", color: "#9ae6b4" };
+  if (score < 67) return { text: "moderate Beschwerden", color: "#faf089" };
+  return { text: "ausgeprägte Beschwerden", color: "#feb2b2" };
+}
+
+function generateNoteForSession(patient, session) {
+  const typeLabel = session.type === "initial" ? "Erstbefund" : "Folgetermin";
+  const dateLabel = session.date ? formatDateShort(session.date) : "ohne Datum";
+  const regionLabel = patient.icdShort || patient.icdCode || "nicht spezifiziert";
+
+  const pain = typeof session.pain === "number" ? session.pain : 5;
+  const func = typeof session.function === "number" ? session.function : 5;
+  const complaintLabels = (session.complaints || []).map((id) => {
+    const opt = COMPLAINT_OPTIONS.find((c) => c.id === id);
+    return opt ? opt.label : id;
+  });
+  const measureLabels = (session.measures || []).map((id) => {
+    const opt = MEASURE_OPTIONS.find((m) => m.id === id);
+    return opt ? opt.label : id;
+  });
+
+  const score =
+    typeof session.score === "number"
+      ? session.score
+      : calculateScore({
+          pain,
+          func,
+          complaintsCount: complaintLabels.length
+        });
+
+  const scoreCat = scoreCategoryFromValue(score);
+
+  let subjective = "Subjektiv: ";
+  if (complaintLabels.length) {
+    subjective += `Patient:in berichtet über ${complaintLabels.join(
+      ", "
+    )} bei Diagnose ${regionLabel}. `;
+  } else {
+    subjective += `Patient:in berichtet über Beschwerden bei Diagnose ${regionLabel}. `;
+  }
+  subjective += `Schmerzintensität aktuell ${pain}/10, Alltags­einschränkung ${func}/10. `;
+
+  if (session.anamnese && session.anamnese.trim()) {
+    subjective += `Anamnese (Kurzfassung): ${session.anamnese.trim()} `;
+  }
+
+  let objective = "Objektiv: ";
+  if (session.complaints?.includes("limited_rom")) {
+    objective += "Beweglichkeit reduziert. ";
+  }
+  if (session.complaints?.includes("weakness")) {
+    objective += "Kraftdefizite in relevanten Muskelgruppen. ";
+  }
+  if (session.complaints?.includes("instability")) {
+    objective +=
+      "subjektives Instabilitätsgefühl, Stabilitätskontrolle geprüft. ";
+  }
+  if (session.befund && session.befund.trim()) {
+    objective += `Befundzusammenfassung: ${session.befund.trim()} `;
+  }
+  if (objective === "Objektiv: ") {
+    objective +=
+      "Muskel- und Gelenkfunktion orientierend untersucht, weitere Tests je nach Verlauf. ";
+  }
+
+  let assessment = `Assessment: Beschwerde-Score ${score}/100 (${scoreCat.text}). `;
+  assessment += `Befund vereinbar mit funktionellen Einschränkungen im Rahmen der Diagnose ${regionLabel}. `;
+  if (session.diagnose && session.diagnose.trim()) {
+    assessment += `Physiotherapeutische Diagnose / Einschätzung: ${session.diagnose.trim()} `;
+  }
+  if (session.speechNotes && session.speechNotes.trim()) {
+    assessment += `Relevante Zusatzinformationen: ${session.speechNotes.trim()} `;
+  }
+
+  let plan = "Plan: ";
+  if (measureLabels.length) {
+    plan += `heute durchgeführt: ${measureLabels.join(", ")}. `;
+  } else {
+    plan += "symptomorientierte Behandlung durchgeführt. ";
+  }
+  if (session.therapieplan && session.therapieplan.trim()) {
+    plan += `Geplanter Therapieverlauf: ${session.therapieplan.trim()} `;
+  }
+  plan +=
+    "Fortführung der Therapie, Anpassung der Belastung, Heimübungsprogramm nach Bedarf. ";
+
+  let verlaufBlock = "";
+  if (session.verlauf && session.verlauf.trim()) {
+    verlaufBlock = `\n\nVerlauf / Zwischenbefunde:\n${session.verlauf.trim()}`;
+  }
+
+  let epikriseBlock = "";
+  if (session.epikrise && session.epikrise.trim()) {
+    epikriseBlock = `\n\nEpikrise / Empfehlung:\n${session.epikrise.trim()}`;
+  }
+
+  const header = `${typeLabel} am ${dateLabel} – ICD-10: ${regionLabel}`;
+  return `${header}\n\n${subjective}\n\n${objective}\n\n${assessment}\n\n${plan}${verlaufBlock}${epikriseBlock}`;
+}
+
+// --------------- Data actions ----------------
+
+function createNewSession(patient, type = "initial") {
+  const session = {
+    id: uuid(),
+    type,
+    date: todayIso(),
+    complaints: [],
+    measures: [],
+    pain: 5,
+    function: 5,
+    // strukturierte Bereiche:
+    anamnese: "",
+    befund: "",
+    diagnose: "",
+    therapieplan: "",
+    verlauf: "",
+    epikrise: "",
+    speechNotes: "",
+    note: "",
+    score: null
+  };
+  if (!patient.sessions) patient.sessions = [];
+  patient.sessions.push(session);
+  return session;
+}
+
+function updateCurrentSession(updater) {
+  const patient = getSelectedPatient();
+  if (!patient) return;
+  const session = getSelectedSession(patient);
+  if (!session) return;
+  updater(session);
+  saveState();
+}
 
 // --------------- Rendering ----------------
 
@@ -389,7 +337,10 @@ function renderPatients() {
     const parts = [];
     if (p.birthYear) parts.push(`*${p.birthYear}`);
     if (p.icdCode) {
-      parts.push(`ICD-10: ${p.icdCode}`);
+      parts.push(p.icdCode);
+    }
+    if (p.icdShort) {
+      parts.push(p.icdShort);
     }
     metaSpan.textContent = parts.join(" · ");
 
@@ -401,8 +352,7 @@ function renderPatients() {
     li.addEventListener("click", () => {
       state.selectedPatientId = p.id;
       if (!p.sessions || !p.sessions.length) {
-        const s = createNewSession();
-        p.sessions = [s];
+        const s = createNewSession(p, "initial");
         state.selectedSessionId = s.id;
       } else {
         state.selectedSessionId = p.sessions[0].id;
@@ -427,16 +377,10 @@ function renderPatientDetail() {
   patientDetailEl.classList.remove("hidden");
 
   patientTitleEl.textContent = patient.name || "Unbenannter Patient";
-
   const meta = [];
   if (patient.birthYear) meta.push(`*${patient.birthYear}`);
-  if (patient.icdCode) {
-    meta.push(
-      `ICD-10: ${patient.icdCode}${
-        patient.icdShort ? " – " + patient.icdShort : ""
-      }`
-    );
-  }
+  if (patient.icdCode) meta.push(`ICD-10: ${patient.icdCode}`);
+  if (patient.icdShort) meta.push(patient.icdShort);
   patientMetaEl.textContent = meta.join(" · ") || "Keine Zusatzinfos";
 
   renderSessions(patient);
@@ -546,14 +490,15 @@ function renderSessionEditor(patient) {
   functionSlider.value = func;
   functionValueEl.textContent = func;
 
-  // Reiter-Texte
-  speechAnamneseEl.value = session.anamnesisText || "";
-  speechBefundEl.value = session.statusText || "";
-  speechDiagnoseEl.value = session.diagnosisText || "";
-  speechTherapieplanEl.value = session.therapyPlanText || "";
-  speechVerlaufEl.value = session.courseText || "";
-  speechEpikriseEl.value = session.epikriseText || "";
+  // strukturierte Bereiche befüllen
+  speechAnamneseEl.value = session.anamnese || "";
+  speechBefundEl.value = session.befund || "";
+  speechDiagnoseEl.value = session.diagnose || "";
+  speechTherapieplanEl.value = session.therapieplan || "";
+  speechVerlaufEl.value = session.verlauf || "";
+  speechEpikriseEl.value = session.epikrise || "";
   speechNotesEl.value = session.speechNotes || "";
+  sessionNoteEl.value = session.note || "";
 
   if (typeof session.score === "number") {
     scoreValueEl.textContent = session.score;
@@ -565,8 +510,6 @@ function renderSessionEditor(patient) {
     scoreCategoryEl.textContent = "Noch nicht berechnet";
     scoreCategoryEl.style.color = "var(--muted)";
   }
-
-  sessionNoteEl.value = session.note || "";
 }
 
 function toggleInArray(arr, id) {
@@ -634,14 +577,48 @@ function renderScoreChart(patient) {
 
 // --------------- Speech ----------------
 
-function setCurrentSpeechTarget(targetId) {
-  currentSpeechTargetId = targetId || "speech-notes";
-  const label = SPEECH_LABEL_MAP[currentSpeechTargetId] || "Gesamt-Transkript";
+function setActiveSpeechTarget(id) {
+  activeSpeechTargetId = id || "speech-notes";
 
+  // UI: Buttons highlighten
+  const allButtons = document.querySelectorAll(".speech-record-btn");
+  allButtons.forEach((btn) => {
+    if (btn.dataset.targetTextarea === activeSpeechTargetId) {
+      btn.classList.add("active");
+    } else {
+      btn.classList.remove("active");
+    }
+  });
+
+  // Hint aktualisieren
+  let label = "";
+  switch (activeSpeechTargetId) {
+    case "speech-anamnese":
+      label = "Anamnese";
+      break;
+    case "speech-befund":
+      label = "Befund";
+      break;
+    case "speech-diagnose":
+      label = "Diagnose";
+      break;
+    case "speech-therapieplan":
+      label = "Therapieplan";
+      break;
+    case "speech-verlauf":
+      label = "Verlauf";
+      break;
+    case "speech-epikrise":
+      label = "Epikrise";
+      break;
+    case "speech-notes":
+    default:
+      label = "Gesamt-Notizen";
+  }
   speechHintEl.textContent =
     "Aktiver Bereich: " +
     label +
-    ". Aufnahme mit dem Button oben starten/stoppen.";
+    " – starte die Aufnahme oben, um direkt in dieses Feld zu diktieren.";
 }
 
 function initSpeech() {
@@ -651,7 +628,7 @@ function initSpeech() {
   if (!SpeechRecognition) {
     speechToggleBtn.disabled = true;
     speechHintEl.textContent =
-      "Sprachfunktion in diesem Browser nicht verfügbar (Desktop-Chrome empfohlen).";
+      "Sprachfunktion in diesem Browser nicht verfügbar (Chrome empfohlen).";
     speechStatusIndicator.textContent = "Mikrofon nicht verfügbar";
     return;
   }
@@ -690,22 +667,46 @@ function initSpeech() {
         finalText += event.results[i][0].transcript + " ";
       }
     }
-    if (!finalText) return;
+    if (finalText) {
+      const targetId = activeSpeechTargetId || "speech-notes";
+      const textarea = document.getElementById(targetId);
+      if (!textarea) return;
 
-    const targetId = currentSpeechTargetId || "speech-notes";
-    const textarea = document.getElementById(targetId);
-    if (!textarea) return;
+      const current = textarea.value.trim();
+      textarea.value = (current + " " + finalText).trim();
 
-    const current = textarea.value.trim();
-    textarea.value = (current + " " + finalText).trim();
-
-    updateCurrentSession((session) => {
-      const fieldName = SPEECH_FIELD_MAP[targetId] || "speechNotes";
-      session[fieldName] = textarea.value;
-    });
+      // in Session speichern
+      updateCurrentSession((session) => {
+        switch (targetId) {
+          case "speech-anamnese":
+            session.anamnese = textarea.value;
+            break;
+          case "speech-befund":
+            session.befund = textarea.value;
+            break;
+          case "speech-diagnose":
+            session.diagnose = textarea.value;
+            break;
+          case "speech-therapieplan":
+            session.therapieplan = textarea.value;
+            break;
+          case "speech-verlauf":
+            session.verlauf = textarea.value;
+            break;
+          case "speech-epikrise":
+            session.epikrise = textarea.value;
+            break;
+          case "speech-notes":
+          default:
+            session.speechNotes = textarea.value;
+            break;
+        }
+      });
+    }
   };
 
   speechStatusIndicator.textContent = "Mikrofon bereit";
+  setActiveSpeechTarget("speech-anamnese"); // Standard: Anamnese
 }
 
 function toggleSpeech() {
@@ -723,7 +724,6 @@ function toggleSpeech() {
 // --------------- Event listeners ----------------
 
 function setupEventListeners() {
-  // neuer Patient
   newPatientForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const name = patientNameInput.value.trim();
@@ -732,99 +732,55 @@ function setupEventListeners() {
       return;
     }
 
-    const icdInput = patientIcdInput.value.trim();
-    if (!icdInput) {
-      alert("Bitte eine ICD-10-Hauptdiagnose eingeben.");
-      return;
-    }
-
     const year = patientYearInput.value
       ? parseInt(patientYearInput.value, 10)
       : null;
 
-    const icdMatch = lookupIcd(icdInput);
+    const icdTerm = patientIcdInput.value.trim();
+    let icdCode = "";
+    let icdShort = "";
+    let icdLong = "";
+
+    if (icdTerm && Array.isArray(ICD10_CODES)) {
+      const matches = searchIcd(icdTerm);
+      if (matches.length) {
+        icdCode = matches[0].code;
+        icdShort = matches[0].short;
+        icdLong = matches[0].long;
+      } else {
+        icdCode = icdTerm;
+      }
+    }
 
     const patient = {
       id: uuid(),
       name,
-      birthYear: Number.isFinite(year) ? year : null,
-      icdCode: icdMatch ? icdMatch.code : icdInput.split(/\s+/)[0],
-      icdShort: icdMatch ? icdMatch.short : "",
-      icdLong: icdMatch ? icdMatch.long : "",
+      birthYear: year,
+      icdCode,
+      icdShort,
+      icdLong,
       sessions: []
     };
-
-    const firstSession = createNewSession();
-    patient.sessions.push(firstSession);
-
     state.patients.push(patient);
     state.selectedPatientId = patient.id;
-    state.selectedSessionId = firstSession.id;
 
-    // Reset Form
+    const s = createNewSession(patient, "initial");
+    state.selectedSessionId = s.id;
+
     patientNameInput.value = "";
     patientYearInput.value = "";
     patientIcdInput.value = "";
+    patientIcdSuggestionsEl.innerHTML = "";
     patientIcdSelectedEl.textContent = "Noch keine Diagnose ausgewählt.";
-    patientIcdSuggestions.style.display = "none";
 
     saveState();
     render();
   });
 
-  // ICD-10 Suche
-  patientIcdInput.addEventListener("input", () => {
-    const value = patientIcdInput.value;
-    const matches = findIcdMatches(value);
-
-    patientIcdSuggestions.innerHTML = "";
-    if (!matches.length || !value.trim()) {
-      patientIcdSuggestions.style.display = "none";
-      return;
-    }
-
-    matches.forEach((m) => {
-      const item = document.createElement("div");
-      item.className = "icd-suggestion-item";
-
-      const codeSpan = document.createElement("span");
-      codeSpan.className = "icd-code";
-      codeSpan.textContent = m.code;
-
-      const textSpan = document.createElement("span");
-      textSpan.className = "icd-text";
-      textSpan.textContent = m.short + (m.long ? " – " + m.long : "");
-
-      item.appendChild(codeSpan);
-      item.appendChild(textSpan);
-
-      item.addEventListener("click", () => {
-        patientIcdInput.value = `${m.code} ${m.short}`;
-        patientIcdSelectedEl.textContent =
-          `${m.code} – ${m.short}` + (m.long ? ` (${m.long})` : "");
-        patientIcdSuggestions.innerHTML = "";
-        patientIcdSuggestions.style.display = "none";
-      });
-
-      patientIcdSuggestions.appendChild(item);
-    });
-
-    patientIcdSuggestions.style.display = "block";
-  });
-
-  document.addEventListener("click", (e) => {
-    if (!patientIcdSuggestions.contains(e.target) && e.target !== patientIcdInput) {
-      patientIcdSuggestions.style.display = "none";
-    }
-  });
-
   addSessionBtn.addEventListener("click", () => {
     const patient = getSelectedPatient();
     if (!patient) return;
-    const s = createNewSession();
-    s.type = "followup";
-    if (!patient.sessions) patient.sessions = [];
-    patient.sessions.push(s);
+    const s = createNewSession(patient, "followup");
     state.selectedSessionId = s.id;
     saveState();
     renderPatientDetail();
@@ -860,43 +816,37 @@ function setupEventListeners() {
     });
   });
 
-  // Reiter-Texte -> Session
+  // strukturierte Textfelder schreiben in Session
   speechAnamneseEl.addEventListener("input", () => {
     updateCurrentSession((session) => {
-      session.anamnesisText = speechAnamneseEl.value;
+      session.anamnese = speechAnamneseEl.value;
     });
   });
-
   speechBefundEl.addEventListener("input", () => {
     updateCurrentSession((session) => {
-      session.statusText = speechBefundEl.value;
+      session.befund = speechBefundEl.value;
     });
   });
-
   speechDiagnoseEl.addEventListener("input", () => {
     updateCurrentSession((session) => {
-      session.diagnosisText = speechDiagnoseEl.value;
+      session.diagnose = speechDiagnoseEl.value;
     });
   });
-
   speechTherapieplanEl.addEventListener("input", () => {
     updateCurrentSession((session) => {
-      session.therapyPlanText = speechTherapieplanEl.value;
+      session.therapieplan = speechTherapieplanEl.value;
     });
   });
-
   speechVerlaufEl.addEventListener("input", () => {
     updateCurrentSession((session) => {
-      session.courseText = speechVerlaufEl.value;
+      session.verlauf = speechVerlaufEl.value;
     });
   });
-
   speechEpikriseEl.addEventListener("input", () => {
     updateCurrentSession((session) => {
-      session.epikriseText = speechEpikriseEl.value;
+      session.epikrise = speechEpikriseEl.value;
     });
   });
-
   speechNotesEl.addEventListener("input", () => {
     updateCurrentSession((session) => {
       session.speechNotes = speechNotesEl.value;
@@ -907,47 +857,6 @@ function setupEventListeners() {
     updateCurrentSession((session) => {
       session.note = sessionNoteEl.value;
     });
-  });
-
-  // Tabs
-  speechTabs.forEach((tab) => {
-    tab.addEventListener("click", () => {
-      const target = tab.dataset.target;
-
-      speechTabs.forEach((t) => t.classList.remove("active"));
-      speechTabPanels.forEach((p) => p.classList.remove("active"));
-
-      tab.classList.add("active");
-      document.getElementById(target)?.classList.add("active");
-    });
-  });
-
-  // "Aufnahme für diesen Bereich" -> Ziel setzen
-  speechRecordButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const targetId = btn.dataset.targetTextarea; // z.B. "speech-anamnese"
-      setCurrentSpeechTarget(targetId);
-
-      // zugehöriges Panel aktivieren
-      const panel = btn.closest(".speech-tab-panel");
-      if (panel) {
-        const panelId = panel.id;
-        speechTabs.forEach((t) =>
-          t.classList.toggle("active", t.dataset.target === panelId)
-        );
-        speechTabPanels.forEach((p) =>
-          p.classList.toggle("active", p.id === panelId)
-        );
-      }
-
-      // Fokus ins Textfeld
-      const textarea = document.getElementById(targetId);
-      if (textarea) textarea.focus();
-    });
-  });
-
-  speechToggleBtn.addEventListener("click", () => {
-    toggleSpeech();
   });
 
   generateNoteBtn.addEventListener("click", () => {
@@ -1000,6 +909,38 @@ function setupEventListeners() {
     saveState();
     renderPatientDetail();
   });
+
+  speechToggleBtn.addEventListener("click", () => {
+    toggleSpeech();
+  });
+
+  // Klick auf ICD-10 Input → Vorschläge aktualisieren
+  patientIcdInput.addEventListener("input", () => {
+    const term = patientIcdInput.value;
+    const matches = searchIcd(term);
+    patientIcdSuggestionsEl.innerHTML = "";
+    if (!matches.length) return;
+    matches.forEach((m) => {
+      const div = document.createElement("div");
+      div.className = "icd-suggestion-item";
+      div.textContent = `${m.code} – ${m.short}`;
+      div.addEventListener("click", () => {
+        patientIcdInput.value = `${m.code} ${m.short}`;
+        patientIcdSelectedEl.textContent = `${m.code} – ${m.short}`;
+        patientIcdSuggestionsEl.innerHTML = "";
+      });
+      patientIcdSuggestionsEl.appendChild(div);
+    });
+  });
+
+  // alle Transkriptions-Buttons: Ziel setzen
+  const speechTargetButtons = document.querySelectorAll(".speech-record-btn");
+  speechTargetButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const targetId = btn.dataset.targetTextarea;
+      setActiveSpeechTarget(targetId);
+    });
+  });
 }
 
 // --------------- Init ----------------
@@ -1009,5 +950,4 @@ document.addEventListener("DOMContentLoaded", () => {
   render();
   setupEventListeners();
   initSpeech();
-  setCurrentSpeechTarget("speech-notes");
 });
